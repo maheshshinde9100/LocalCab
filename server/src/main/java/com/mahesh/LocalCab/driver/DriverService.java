@@ -1,10 +1,7 @@
 package com.mahesh.LocalCab.driver;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,9 +14,8 @@ import static com.mahesh.LocalCab.driver.DriverDtos.RegisterDriverRequest;
 public class DriverService {
 
     private final DriverRepository driverRepository;
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
-    @Transactional
     public DriverResponse registerDriver(RegisterDriverRequest request) {
         driverRepository.findByPhoneNumber(request.getPhoneNumber())
                 .ifPresent(existing -> {
@@ -46,7 +42,6 @@ public class DriverService {
         return toResponse(saved);
     }
 
-    @Transactional(readOnly = true)
     public List<DriverResponse> findAvailableDriversByPincode(String pincode) {
         return driverRepository.findByAvailableTrueAndPincode(pincode)
                 .stream()

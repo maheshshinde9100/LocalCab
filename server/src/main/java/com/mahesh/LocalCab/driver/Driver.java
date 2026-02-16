@@ -1,26 +1,17 @@
 package com.mahesh.LocalCab.driver;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
 
-import jakarta.persistence.EntityListeners;
-
-@Entity
-@Table(name = "drivers")
-@EntityListeners(AuditingEntityListener.class)
+@Document(collection = "drivers")
 @Data
 @Builder
 @NoArgsConstructor
@@ -28,20 +19,18 @@ import jakarta.persistence.EntityListeners;
 public class Driver {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false)
     private String fullName;
 
-    @Column(nullable = false, unique = true, length = 20)
+    /**
+     * Unique phone number (we enforce this via queries, and you can add a unique index in Mongo).
+     */
     private String phoneNumber;
 
     /**
-     * For now we will store a hashed password here.
-     * Later we can switch to OTP-based login if needed.
+     * Hashed password (BCrypt). Later we can move to OTP-based login if preferred.
      */
-    @Column(nullable = false)
     private String passwordHash;
 
     // Basic rural location details
@@ -50,7 +39,6 @@ public class Driver {
     private String district;
     private String state;
 
-    @Column(length = 10)
     private String pincode;
 
     // Optional GPS coordinates if available
@@ -66,11 +54,8 @@ public class Driver {
     private boolean available;
 
     @CreatedDate
-    @Column(updatable = false)
     private Instant createdAt;
 
     @LastModifiedDate
     private Instant updatedAt;
 }
-
-

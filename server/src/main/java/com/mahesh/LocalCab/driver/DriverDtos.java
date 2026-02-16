@@ -51,7 +51,7 @@ public class DriverDtos {
     @Data
     @Builder
     public static class DriverResponse {
-        private Long id;
+        private String id;
         private String fullName;
         private String phoneNumber;
         private String village;
