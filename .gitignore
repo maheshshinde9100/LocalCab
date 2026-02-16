@@ -22,3 +22,5 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+# i have created a api doc from server side - so it become helpful for the client side later onn
+API_DOC.md 
