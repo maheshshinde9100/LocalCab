@@ -33,6 +33,24 @@ public class DriverController {
         List<DriverResponse> drivers = driverService.findAvailableDriversByPincode(pincode);
         return ResponseEntity.ok(drivers);
     }
+
+    @PatchMapping("/{driverId}/availability")
+    public ResponseEntity<Void> updateAvailability(
+            @PathVariable String driverId,
+            @RequestParam boolean available
+    ) {
+        driverService.updateAvailability(driverId, available);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{driverId}/profile")
+    public ResponseEntity<DriverResponse> updateProfile(
+            @PathVariable String driverId,
+            @Valid @RequestBody RegisterDriverRequest updateRequest
+    ) {
+        DriverResponse updated = driverService.updateProfile(driverId, updateRequest);
+        return ResponseEntity.ok(updated);
+    }
 }
 
 
