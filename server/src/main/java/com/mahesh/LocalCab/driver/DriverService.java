@@ -49,6 +49,32 @@ public class DriverService {
                 .collect(Collectors.toList());
     }
 
+    public void updateAvailability(String driverId, boolean available) {
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new IllegalArgumentException("Driver not found"));
+        driver.setAvailable(available);
+        driverRepository.save(driver);
+    }
+
+    public DriverResponse updateProfile(String driverId, DriverDtos.RegisterDriverRequest update) {
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new IllegalArgumentException("Driver not found"));
+
+        driver.setFullName(update.getFullName());
+        driver.setVillage(update.getVillage());
+        driver.setTaluka(update.getTaluka());
+        driver.setDistrict(update.getDistrict());
+        driver.setState(update.getState());
+        driver.setPincode(update.getPincode());
+        driver.setVehicleType(update.getVehicleType());
+        driver.setVehicleModel(update.getVehicleModel());
+        driver.setVehicleNumber(update.getVehicleNumber());
+        driver.setTotalSeats(update.getTotalSeats());
+
+        Driver saved = driverRepository.save(driver);
+        return toResponse(saved);
+    }
+
     private DriverResponse toResponse(Driver driver) {
         return DriverResponse.builder()
                 .id(driver.getId())
