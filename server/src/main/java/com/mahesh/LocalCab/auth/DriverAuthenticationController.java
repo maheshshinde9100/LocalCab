@@ -22,12 +22,12 @@ public class DriverAuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        return driverRepository.findByPhoneNumber(request.getPhoneNumber())
-                .filter(driver -> passwordEncoder.matches(request.getPassword(), driver.getPasswordHash()))
-                .map(this::buildLoginResponse)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Invalid phone number or password"));
+        var driverOpt = driverRepository.findByPhoneNumber(request.getPhoneNumber())
+                .filter(driver -> passwordEncoder.matches(request.getPassword(), driver.getPasswordHash()));
+        if (driverOpt.isPresent()) {
+            return ResponseEntity.ok(buildLoginResponse(driverOpt.get()));
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid phone number or password");
     }
 
     private LoginResponse buildLoginResponse(Driver driver) {
