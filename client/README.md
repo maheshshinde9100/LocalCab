@@ -1,16 +1,121 @@
-# React + Vite
+# LocalCab Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite frontend application for LocalCab rural taxi service.
 
-Currently, two official plugins are available:
+## Setup Instructions
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 1. Install Dependencies
 
-## React Compiler
+```bash
+npm install
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+This will install:
+- React 19
+- React Router DOM
+- Axios (for API calls)
+- Tailwind CSS
+- PostCSS & Autoprefixer
 
-## Expanding the ESLint configuration
+### 2. Configure Environment
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Create a `.env` file in the `client` directory:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080/api
+```
+
+Update the URL if your backend runs on a different port or domain.
+
+### 3. Run Development Server
+
+```bash
+npm run dev
+```
+
+The app will be available at `http://localhost:5173` (or the port shown in terminal).
+
+### 4. Build for Production
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist` directory.
+
+## Features
+
+### Consumer Features
+- **Home Page**: Landing page with features and how it works
+- **Find Taxis**: Search available drivers by pincode
+- **Create Booking**: Book a taxi after negotiating with driver
+
+### Driver Features
+- **Registration**: Register as a driver with vehicle details
+- **Login**: Secure login with JWT authentication
+- **Dashboard**: 
+  - View all bookings
+  - Toggle availability (online/offline)
+  - Update booking status
+  - View ratings summary
+
+## Project Structure
+
+```
+client/
+├── src/
+│   ├── components/      # Reusable components
+│   │   ├── Navbar.jsx
+│   │   └── ProtectedRoute.jsx
+│   ├── pages/          # Page components
+│   │   ├── Home.jsx
+│   │   ├── DriverRegister.jsx
+│   │   ├── DriverLogin.jsx
+│   │   ├── DriverDashboard.jsx
+│   │   ├── AvailableDrivers.jsx
+│   │   └── CreateBooking.jsx
+│   ├── utils/          # Utility functions
+│   │   ├── api.js      # API client
+│   │   └── auth.js     # Authentication helpers
+│   ├── App.jsx         # Main app component with routing
+│   ├── main.jsx        # Entry point
+│   └── index.css       # Tailwind CSS imports
+├── tailwind.config.js  # Tailwind configuration
+├── postcss.config.js   # PostCSS configuration
+└── package.json
+```
+
+## API Integration
+
+All API calls are centralized in `src/utils/api.js`. The API client:
+- Automatically adds JWT tokens to authenticated requests
+- Handles base URL configuration
+- Provides organized API methods for drivers, bookings, ratings, and admin
+
+## Authentication
+
+Authentication is handled via JWT tokens stored in localStorage:
+- Token is automatically added to API requests
+- Protected routes redirect to login if not authenticated
+- Logout clears all stored authentication data
+
+## Styling
+
+The app uses Tailwind CSS with a custom color scheme:
+- Primary colors: Blue shades (primary-50 to primary-900)
+- Responsive design: Mobile-first approach
+- Modern UI: Clean, professional design suitable for rural users
+
+## Browser Support
+
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## Development Notes
+
+- The app uses React Router v6 for navigation
+- State management is handled via React hooks (useState, useEffect)
+- API errors are displayed to users with user-friendly messages
+- Form validation is handled both client-side and server-side
