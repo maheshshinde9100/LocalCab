@@ -20,7 +20,7 @@ function DriverDashboard() {
       const response = await bookingAPI.getMyBookings();
       setBookings(response.data);
     } catch (err) {
-      setError('Failed to load bookings');
+      setError('Failed to load bookings. Check your connection.');
     } finally {
       setLoading(false);
     }
@@ -31,9 +31,7 @@ function DriverDashboard() {
     try {
       const response = await ratingAPI.getDriverRatingSummary(driverId);
       setRatings(response.data);
-    } catch (err) {
-      // Ratings might not exist yet
-    }
+    } catch (err) { }
   };
 
   const handleToggleAvailability = async () => {
@@ -50,178 +48,172 @@ function DriverDashboard() {
       await bookingAPI.updateStatus(bookingId, newStatus);
       loadBookings();
     } catch (err) {
-      alert('Failed to update booking status');
+      alert('Failed to update status');
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusConfig = (status) => {
     switch (status) {
-      case 'COMPLETED':
-        return 'bg-green-100 text-green-800';
-      case 'ONGOING':
-        return 'bg-blue-100 text-blue-800';
-      case 'CONFIRMED':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'COMPLETED': return { dot: 'bg-green-500', bg: 'bg-green-50', text: 'text-green-700' };
+      case 'ONGOING': return { dot: 'bg-blue-500', bg: 'bg-blue-50', text: 'text-blue-700' };
+      case 'CONFIRMED': return { dot: 'bg-yellow-500', bg: 'bg-yellow-50', text: 'text-yellow-700' };
+      case 'CANCELLED': return { dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-700' };
+      default: return { dot: 'bg-gray-500', bg: 'bg-gray-50', text: 'text-gray-700' };
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-gray-900">Driver Dashboard</h1>
-
-        {/* Availability Toggle */}
-        <div className="bg-white shadow-lg rounded-lg p-6 mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Availability Status</h2>
-              <p className="text-gray-600">
-                {available ? 'You are currently available for rides' : 'You are currently offline'}
-              </p>
+    <div className="min-h-screen bg-[#f3f3f3]">
+      {/* Top Navigation / Status Area */}
+      <div className="bg-black text-white px-4 py-8 sm:px-6 lg:px-8 shadow-2xl">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="opacity-0 animate-fade-in-up">
+              <h1 className="text-3xl font-bold mb-1">Driver Portal</h1>
+              <p className="text-gray-400 font-medium">Manage your rides and availability</p>
             </div>
-            <button
-              onClick={handleToggleAvailability}
-              className={`px-6 py-3 rounded-lg font-semibold transition ${
-                available
-                  ? 'bg-green-500 hover:bg-green-600 text-white'
-                  : 'bg-gray-300 hover:bg-gray-400 text-gray-800'
-              }`}
-            >
-              {available ? 'Go Offline' : 'Go Online'}
-            </button>
+
+            <div className="flex items-center gap-4 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <div className={`px-5 py-3 rounded-2xl flex items-center gap-3 border transition-colors ${available ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                <div className={`w-3 h-3 rounded-full animate-pulse ${available ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span className={`font-bold uppercase tracking-wider text-sm ${available ? 'text-green-400' : 'text-red-400'}`}>
+                  {available ? 'YOU ARE ONLINE' : 'YOU ARE OFFLINE'}
+                </span>
+              </div>
+              <button
+                onClick={handleToggleAvailability}
+                className={`px-8 py-3 rounded-2xl font-bold transition-all transform active:scale-95 shadow-lg ${available ? 'bg-white text-black hover:bg-gray-100' : 'bg-primary-500 text-white hover:bg-primary-600'
+                  }`}
+              >
+                {available ? 'Go Offline' : 'Go Online Now'}
+              </button>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Rating Summary */}
-        {ratings && ratings.totalRatings > 0 && (
-          <div className="bg-white shadow-lg rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Your Rating</h2>
-            <div className="flex items-center">
-              <div className="text-4xl font-bold text-primary-600 mr-4">
-                {ratings.averageRating.toFixed(1)}
-              </div>
-              <div>
-                <div className="flex items-center mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className={`text-2xl ${
-                        i < Math.floor(ratings.averageRating)
-                          ? 'text-yellow-500'
-                          : 'text-gray-300'
-                      }`}
-                    >
-                      ★
-                    </span>
-                  ))}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+        <div className="grid lg:grid-cols-3 gap-8">
+
+          {/* Left Column: Stats & Profile */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-gray-100 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <h2 className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-6">Performance</h2>
+              {ratings && ratings.totalRatings > 0 ? (
+                <div className="flex items-center gap-6">
+                  <div className="bg-black text-white w-20 h-20 rounded-[1.5rem] flex items-center justify-center text-3xl font-bold">
+                    {ratings.averageRating.toFixed(1)}
+                  </div>
+                  <div>
+                    <div className="flex gap-1 mb-1">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className={`text-xl ${i < Math.floor(ratings.averageRating) ? 'text-yellow-500' : 'text-gray-200'}`}>★</span>
+                      ))}
+                    </div>
+                    <p className="text-gray-500 font-medium text-sm">from {ratings.totalRatings} ratings</p>
+                  </div>
                 </div>
-                <p className="text-gray-600">{ratings.totalRatings} total reviews</p>
-              </div>
+              ) : (
+                <p className="text-gray-500 font-medium">No ratings yet. Start driving to build your score!</p>
+              )}
+            </div>
+
+            <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-gray-100 opacity-0 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+              <h2 className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-4">Earnings</h2>
+              <div className="text-4xl font-black text-black mb-1">₹{bookings.filter(b => b.status === 'COMPLETED').reduce((acc, b) => acc + b.agreedFare, 0)}</div>
+              <p className="text-gray-400 font-medium text-sm">Total earnings this month</p>
             </div>
           </div>
-        )}
 
-        {/* Bookings List */}
-        <div className="bg-white shadow-lg rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-6">Your Bookings</h2>
+          {/* Right Column: Bookings Feed */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-gray-100 min-h-[500px] opacity-0 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold text-black">Active Tasks</h2>
+                <span className="bg-gray-100 text-gray-500 font-bold px-4 py-1.5 rounded-full text-xs uppercase tracking-widest">
+                  {bookings.length} Bookings
+                </span>
+              </div>
 
-          {loading ? (
-            <div className="text-center py-12 text-gray-600">Loading bookings...</div>
-          ) : error ? (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          ) : bookings.length === 0 ? (
-            <div className="text-center py-12 text-gray-600">No bookings yet</div>
-          ) : (
-            <div className="space-y-4">
-              {bookings.map((booking) => (
-                <div
-                  key={booking.id}
-                  className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {booking.riderName}
-                      </h3>
-                      <p className="text-gray-600 text-sm">{booking.riderPhoneNumber}</p>
-                    </div>
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
-                        booking.status
-                      )}`}
-                    >
-                      {booking.status}
-                    </span>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm text-gray-600">Pickup</p>
-                      <p className="font-medium">
-                        {booking.pickupVillage}
-                        {booking.pickupLandmark && `, ${booking.pickupLandmark}`}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Drop</p>
-                      <p className="font-medium">{booking.dropLocation}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-sm text-gray-600">Fare</p>
-                      <p className="text-xl font-bold text-primary-600">₹{booking.agreedFare}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      {booking.status === 'REQUESTED' && (
-                        <>
-                          <button
-                            onClick={() => handleUpdateStatus(booking.id, 'CONFIRMED')}
-                            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold"
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            onClick={() => handleUpdateStatus(booking.id, 'CANCELLED')}
-                            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold"
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      )}
-                      {booking.status === 'CONFIRMED' && (
-                        <button
-                          onClick={() => handleUpdateStatus(booking.id, 'ONGOING')}
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold"
-                        >
-                          Start Trip
-                        </button>
-                      )}
-                      {booking.status === 'ONGOING' && (
-                        <button
-                          onClick={() => handleUpdateStatus(booking.id, 'COMPLETED')}
-                          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold"
-                        >
-                          Complete Trip
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-gray-500 mt-4">
-                    Created: {new Date(booking.createdAt).toLocaleString()}
-                  </p>
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-20 grayscale opacity-50">
+                  <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p className="font-bold uppercase tracking-widest text-sm text-gray-400">Syncing with server...</p>
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-6">
+                  {bookings.length === 0 ? (
+                    <div className="text-center py-20">
+                      <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-gray-200">
+                        <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      </div>
+                      <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">No active ride requests</p>
+                    </div>
+                  ) : (
+                    bookings.map((booking) => {
+                      const cfg = getStatusConfig(booking.status);
+                      return (
+                        <div key={booking.id} className="group relative bg-gray-50 border border-gray-100 rounded-3xl p-6 hover:bg-white hover:shadow-2xl hover:border-black transition-all duration-300">
+                          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center font-bold shadow-lg">
+                                {booking.riderName.charAt(0)}
+                              </div>
+                              <div>
+                                <h3 className="font-bold text-lg text-black">{booking.riderName}</h3>
+                                <a href={`tel:${booking.riderPhoneNumber}`} className="text-primary-600 font-bold text-sm hover:underline">
+                                  {booking.riderPhoneNumber}
+                                </a>
+                              </div>
+                            </div>
+                            <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-widest ${cfg.bg} ${cfg.text}`}>
+                              <div className={`w-2 h-2 rounded-full ${cfg.dot}`}></div>
+                              {booking.status}
+                            </div>
+                          </div>
+
+                          <div className="grid sm:grid-cols-2 gap-4 mb-8">
+                            <div className="bg-white p-4 rounded-2xl border border-gray-100">
+                              <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mb-1">Pickup From</p>
+                              <p className="text-black font-bold truncate">{booking.pickupVillage}</p>
+                              {booking.pickupLandmark && <p className="text-gray-500 text-xs truncate mt-0.5">{booking.pickupLandmark}</p>}
+                            </div>
+                            <div className="bg-white p-4 rounded-2xl border border-gray-100">
+                              <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mb-1">Drop Location</p>
+                              <p className="text-black font-bold truncate">{booking.dropLocation}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                            <div className="text-center sm:text-left">
+                              <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mb-1">Agreed Fare</p>
+                              <p className="text-3xl font-black text-black">₹{booking.agreedFare}</p>
+                            </div>
+
+                            <div className="flex gap-2 w-full sm:w-auto">
+                              {booking.status === 'REQUESTED' && (
+                                <>
+                                  <button onClick={() => handleUpdateStatus(booking.id, 'CONFIRMED')} className="flex-1 sm:flex-none bg-black text-white px-8 py-3 rounded-2xl font-bold hover:bg-gray-800 transition-all active:scale-95 shadow-md">Accept</button>
+                                  <button onClick={() => handleUpdateStatus(booking.id, 'CANCELLED')} className="flex-1 sm:flex-none bg-white border border-gray-200 text-red-500 px-8 py-3 rounded-2xl font-bold hover:bg-red-50 transition-all active:scale-95">Decline</button>
+                                </>
+                              )}
+                              {booking.status === 'CONFIRMED' && (
+                                <button onClick={() => handleUpdateStatus(booking.id, 'ONGOING')} className="w-full sm:w-auto bg-blue-600 text-white px-10 py-3 rounded-2xl font-bold hover:bg-blue-700 transition-all active:scale-95 shadow-md">Start Trip</button>
+                              )}
+                              {booking.status === 'ONGOING' && (
+                                <button onClick={() => handleUpdateStatus(booking.id, 'COMPLETED')} className="w-full sm:w-auto bg-green-600 text-white px-10 py-3 rounded-2xl font-bold hover:bg-green-700 transition-all active:scale-95 shadow-md">Complete Trip</button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
         </div>
       </div>
     </div>
