@@ -69,16 +69,10 @@ public class AdminService {
 
     public AdminStatsResponse getAdminStats() {
         long totalDrivers = driverRepository.count();
-        long availableDrivers = driverRepository.findAll().stream()
-                .filter(Driver::isAvailable)
-                .count();
+        long availableDrivers = driverRepository.countByAvailableTrue();
         long totalBookings = bookingRepository.count();
-        long completedBookings = bookingRepository.findAll().stream()
-                .filter(b -> b.getStatus() == BookingStatus.COMPLETED)
-                .count();
-        long ongoingBookings = bookingRepository.findAll().stream()
-                .filter(b -> b.getStatus() == BookingStatus.ONGOING)
-                .count();
+        long completedBookings = bookingRepository.countByStatus(BookingStatus.COMPLETED);
+        long ongoingBookings = bookingRepository.countByStatus(BookingStatus.ONGOING);
 
         return AdminStatsResponse.builder()
                 .totalDrivers(totalDrivers)

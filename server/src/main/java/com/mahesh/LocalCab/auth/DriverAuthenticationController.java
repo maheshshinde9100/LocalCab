@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth/driver")
 @RequiredArgsConstructor
@@ -27,7 +29,8 @@ public class DriverAuthenticationController {
         if (driverOpt.isPresent()) {
             return ResponseEntity.ok(buildLoginResponse(driverOpt.get()));
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid phone number or password");
+        Map<String, String> error = Map.of("message", "Invalid phone number or password");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     private LoginResponse buildLoginResponse(Driver driver) {

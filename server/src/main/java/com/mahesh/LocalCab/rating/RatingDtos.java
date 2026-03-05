@@ -17,10 +17,8 @@ public class RatingDtos {
         @NotBlank
         private String bookingId;
 
-        @NotBlank
         private String riderName;
 
-        @NotBlank
         private String riderPhoneNumber;
 
         @NotNull

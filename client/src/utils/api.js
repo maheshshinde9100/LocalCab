@@ -28,9 +28,9 @@ export const driverAPI = {
   register: (data) => api.post('/drivers/register', data),
   login: (data) => api.post('/auth/driver/login', data),
   getAvailable: (pincode) => api.get(`/drivers/available?pincode=${pincode}`),
-  updateAvailability: (driverId, available) => 
+  updateAvailability: (driverId, available) =>
     api.patch(`/drivers/${driverId}/availability?available=${available}`),
-  updateProfile: (driverId, data) => 
+  updateProfile: (driverId, data) =>
     api.put(`/drivers/${driverId}/profile`, data),
 };
 
@@ -38,7 +38,7 @@ export const driverAPI = {
 export const bookingAPI = {
   create: (data) => api.post('/bookings', data),
   getMyBookings: () => api.get('/bookings/me'),
-  updateStatus: (bookingId, status) => 
+  updateStatus: (bookingId, status) =>
     api.patch(`/bookings/${bookingId}/status`, { status }),
 };
 
@@ -51,15 +51,20 @@ export const ratingAPI = {
 
 // Admin APIs
 export const adminAPI = {
-  getDrivers: (page = 0, size = 20) => 
+  getDrivers: (page = 0, size = 20) =>
     api.get(`/admin/drivers?page=${page}&size=${size}`),
   getDriver: (driverId) => api.get(`/admin/drivers/${driverId}`),
   blockDriver: (driverId) => api.post(`/admin/drivers/${driverId}/block`),
   unblockDriver: (driverId) => api.post(`/admin/drivers/${driverId}/unblock`),
-  getBookings: (page = 0, size = 20) => 
+  getBookings: (page = 0, size = 20) =>
     api.get(`/admin/bookings?page=${page}&size=${size}`),
   getBooking: (bookingId) => api.get(`/admin/bookings/${bookingId}`),
   getStats: () => api.get('/admin/stats'),
+};
+
+// AI APIs
+export const aiAPI = {
+  suggestFare: (data) => api.post('/ai/suggest-fare', data),
 };
 
 export default api;
