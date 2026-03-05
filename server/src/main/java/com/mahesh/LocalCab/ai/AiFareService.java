@@ -2,6 +2,7 @@ package com.mahesh.LocalCab.ai;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,15 +20,19 @@ public class AiFareService {
 
     private final ChatClient chatClient;
 
-    public AiFareService(ChatModel chatModel) {
-        this.chatClient = ChatClient.create(chatModel);
+    public AiFareService(@Autowired(required = false) ChatModel chatModel) {
+        if (chatModel != null) {
+            this.chatClient = ChatClient.create(chatModel);
+        } else {
+            this.chatClient = null;
+        }
     }
 
     public FareSuggestionResponse suggestFare(FareSuggestionRequest request) {
         int km = Optional.ofNullable(request.getApproximateKm()).orElse(DEFAULT_KM);
         String vehicleType = Optional.ofNullable(request.getVehicleType()).orElse("Sedan");
 
-        if (openaiApiKey != null && !openaiApiKey.isBlank()) {
+        if (chatClient != null && openaiApiKey != null && !openaiApiKey.isBlank() && !openaiApiKey.equals("dummy_key")) {
             try {
                 return suggestFareWithAi(request, km, vehicleType);
             } catch (Exception e) {

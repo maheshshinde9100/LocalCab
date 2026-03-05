@@ -54,11 +54,25 @@ public class GlobalExceptionHandler {
                 .body(baseBody(HttpStatus.FORBIDDEN, ex.getMessage(), request.getRequestURI()));
     }
 
+    @ExceptionHandler(org.springframework.dao.DataAccessException.class)
+    public ResponseEntity<Map<String, Object>> handleDatabaseError(
+            org.springframework.dao.DataAccessException ex,
+            HttpServletRequest request) {
+        String message = "Database connection issue. If you're seeing DNS errors, please check your network or use a local MongoDB.";
+        if (ex.getMessage().contains("DNS")) {
+            message = "MongoDB DNS Resolution Failed. Suggestion: Update your system DNS to 8.8.8.8 or use a standard connection string.";
+        }
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(baseBody(HttpStatus.SERVICE_UNAVAILABLE, message, request.getRequestURI()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(
             Exception ex,
             HttpServletRequest request) {
+        ex.printStackTrace(); // Log for server-side debugging
+        String message = ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred";
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(baseBody(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", request.getRequestURI()));
+                .body(baseBody(HttpStatus.INTERNAL_SERVER_ERROR, message, request.getRequestURI()));
     }
 }
