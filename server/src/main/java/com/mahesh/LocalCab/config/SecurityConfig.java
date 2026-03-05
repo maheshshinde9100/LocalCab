@@ -26,7 +26,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
                         .requestMatchers("/api/drivers/register").permitAll()
-                        .requestMatchers("/api/drivers/available/**").permitAll()
+                        .requestMatchers("/api/drivers/available").permitAll()
                         .requestMatchers("/api/auth/driver/login").permitAll()
                         .requestMatchers("/api/bookings").permitAll() // create booking is public
                         .requestMatchers("/api/ratings/**").permitAll()

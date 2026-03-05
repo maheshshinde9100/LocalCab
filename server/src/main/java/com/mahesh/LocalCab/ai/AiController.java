@@ -13,7 +13,7 @@ public class AiController {
 
     private final AiFareService aiFareService;
 
-    @PostMapping("/fare-suggestion")
+    @PostMapping("/suggest-fare")
     public ResponseEntity<FareSuggestionResponse> getFareSuggestion(@Valid @RequestBody FareSuggestionRequest request) {
         return ResponseEntity.ok(aiFareService.suggestFare(request));
     }
