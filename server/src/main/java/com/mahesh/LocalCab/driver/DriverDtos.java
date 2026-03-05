@@ -26,11 +26,7 @@ public class DriverDtos {
         private String village;
 
         private String taluka;
-
-        @NotBlank
         private String district;
-
-        @NotBlank
         private String state;
 
         @NotBlank
