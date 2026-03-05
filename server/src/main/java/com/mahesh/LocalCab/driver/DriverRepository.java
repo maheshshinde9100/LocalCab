@@ -10,5 +10,7 @@ public interface DriverRepository extends MongoRepository<Driver, String> {
     Optional<Driver> findByPhoneNumber(String phoneNumber);
 
     List<Driver> findByAvailableTrueAndPincode(String pincode);
+
+    long countByAvailableTrue();
 }
 

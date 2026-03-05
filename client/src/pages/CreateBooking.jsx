@@ -74,7 +74,12 @@ function CreateBooking() {
       alert('Ride booked! The driver has been notified.');
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Booking failed. Try again.');
+      if (err.response?.data?.fieldErrors) {
+        const fieldMsgs = Object.values(err.response.data.fieldErrors).join(', ');
+        setError(`Details missing: ${fieldMsgs}`);
+      } else {
+        setError(err.response?.data?.message || 'Booking failed. Try again.');
+      }
     } finally {
       setLoading(false);
     }

@@ -38,7 +38,12 @@ function DriverRegister() {
       alert('Welcome to the fleet! Please log in to start.');
       navigate('/driver/login');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Check all fields.');
+      if (err.response?.data?.fieldErrors) {
+        const fieldMsgs = Object.values(err.response.data.fieldErrors).join(', ');
+        setError(`Validation Error: ${fieldMsgs}`);
+      } else {
+        setError(err.response?.data?.message || 'Registration failed. Check all fields.');
+      }
     } finally {
       setLoading(false);
     }
