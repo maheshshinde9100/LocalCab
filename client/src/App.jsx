@@ -8,6 +8,7 @@ import AvailableDrivers from './pages/AvailableDrivers';
 import CreateBooking from './pages/CreateBooking';
 import RateDriver from './pages/RateDriver';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
 function ProtectedRoute({ children }) {
   return auth.isAuthenticated() ? children : <Navigate to="/driver/login" />;
@@ -16,24 +17,27 @@ function ProtectedRoute({ children }) {
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/drivers/register" element={<DriverRegister />} />
-          <Route path="/driver/login" element={<DriverLogin />} />
-          <Route path="/drivers/available" element={<AvailableDrivers />} />
-          <Route path="/bookings/create" element={<CreateBooking />} />
-          <Route path="/ratings/create" element={<RateDriver />} />
-          <Route
-            path="/driver/dashboard"
-            element={
-              <ProtectedRoute>
-                <DriverDashboard />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+        <main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/drivers/register" element={<DriverRegister />} />
+            <Route path="/driver/login" element={<DriverLogin />} />
+            <Route path="/drivers/available" element={<AvailableDrivers />} />
+            <Route path="/bookings/create" element={<CreateBooking />} />
+            <Route path="/ratings/create" element={<RateDriver />} />
+            <Route
+              path="/driver/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DriverDashboard />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </main>
+        <Footer />
       </div>
     </Router>
   );
