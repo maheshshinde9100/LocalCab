@@ -27,7 +27,8 @@ public class DriverAuthenticationController {
         if (driverOpt.isPresent()) {
             return ResponseEntity.ok(buildLoginResponse(driverOpt.get()));
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid phone number or password");
+        Map<String, String> error = Map.of("message", "Invalid phone number or password");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     private LoginResponse buildLoginResponse(Driver driver) {
