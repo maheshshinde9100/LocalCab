@@ -29,8 +29,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/drivers/available/**").permitAll()
                         .requestMatchers("/api/auth/driver/login").permitAll()
                         .requestMatchers("/api/bookings").permitAll() // create booking is public
-                        .requestMatchers("/api/ratings/**").permitAll() // ratings are public
-                        // Admin endpoints (for now require auth; later can add admin role check)
+                        .requestMatchers("/api/ratings/**").permitAll()
+                        .requestMatchers("/api/ai/**").permitAll()
+                        // Admin / driver endpoints require auth
                         // Driver-only endpoints require authentication (driver JWT)
                         .anyRequest().authenticated()
                 )
