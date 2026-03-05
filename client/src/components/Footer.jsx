@@ -39,16 +39,17 @@ function Footer() {
                         <ul className="space-y-4 text-gray-400 text-sm font-medium">
                             <li><Link to="/" className="hover:text-white transition-colors">Help Center</Link></li>
                             <li><Link to="/" className="hover:text-white transition-colors">Safety</Link></li>
-                            <li><Link to="/" className="hover:text-white transition-colors">Contact Us</Link></li>
+                            <li><Link to="/developer" className="hover:text-white transition-colors">Contact Us</Link></li>
+                            <li><Link to="/developer" className="hover:text-white transition-colors">Developer Details</Link></li>
                         </ul>
                     </div>
                 </div>
 
                 <div className="pt-10 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex gap-6">
-                        <a href="#" className="text-gray-400 hover:text-white transition-colors"><i className="fab fa-facebook-f"></i></a>
-                        <a href="#" className="text-gray-400 hover:text-white transition-colors"><i className="fab fa-twitter"></i></a>
-                        <a href="#" className="text-gray-400 hover:text-white transition-colors"><i className="fab fa-instagram"></i></a>
+                        <a href="https://github.com/maheshshinde9100" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><i className="fab fa-github"></i></a>
+                        <a href="https://www.linkedin.com/in/maheshshinde9100/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><i className="fab fa-linkedin-in"></i></a>
+                        <a href="https://maheshshinde-dev.vercel.app" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><i className="fas fa-globe"></i></a>
                     </div>
                     <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">
                         © {new Date().getFullYear()} LocalCab Technologies. All rights reserved.

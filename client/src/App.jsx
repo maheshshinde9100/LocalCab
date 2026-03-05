@@ -7,6 +7,9 @@ import DriverDashboard from './pages/DriverDashboard';
 import AvailableDrivers from './pages/AvailableDrivers';
 import CreateBooking from './pages/CreateBooking';
 import RateDriver from './pages/RateDriver';
+import Developer from './pages/Developer';
+import NotFound from './pages/NotFound';
+import ScrollToTop from './utils/ScrollToTop';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -17,6 +20,7 @@ function ProtectedRoute({ children }) {
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <div className="min-h-screen bg-white">
         <Navbar />
         <main>
@@ -27,6 +31,7 @@ function App() {
             <Route path="/drivers/available" element={<AvailableDrivers />} />
             <Route path="/bookings/create" element={<CreateBooking />} />
             <Route path="/ratings/create" element={<RateDriver />} />
+            <Route path="/developer" element={<Developer />} />
             <Route
               path="/driver/dashboard"
               element={
@@ -35,6 +40,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
         <Footer />

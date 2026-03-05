@@ -25,6 +25,7 @@ function Navbar() {
           <div className="hidden md:flex items-center space-x-8">
             <Link to="/" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Home</Link>
             <Link to="/drivers/available" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Find Taxi</Link>
+            <Link to="/developer" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Developer</Link>
 
             {isAuthenticated ? (
               <div className="flex items-center gap-6">
