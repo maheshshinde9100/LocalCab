@@ -4,6 +4,13 @@ import DriverCard from '../components/DriverCard';
 
 function AvailableDrivers() {
   const [locationQuery, setLocationQuery] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (auth.isAuthenticated()) {
+      navigate('/driver/dashboard');
+    }
+  }, [navigate]);
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

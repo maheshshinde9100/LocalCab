@@ -4,6 +4,7 @@ import { auth } from '../utils/auth';
 function Navbar() {
   const navigate = useNavigate();
   const isAuthenticated = auth.isAuthenticated();
+  const isAdmin = auth.isAdminAuthenticated();
   const driverName = localStorage.getItem('driverName');
 
   const handleLogout = () => {
@@ -23,17 +24,21 @@ function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center space-x-8">
-            {isAuthenticated ? (
+            {isAuthenticated || isAdmin ? (
               <div className="flex items-center gap-6">
-                <Link to="/driver/dashboard" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Dashboard</Link>
+                <Link to={isAdmin ? "/admin/dashboard" : "/driver/dashboard"} className="text-sm font-bold text-gray-900 hover:text-black transition-colors">
+                  {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
+                </Link>
                 <Link to="/developer" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Developer</Link>
                 <div className="h-6 w-px bg-gray-200"></div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold">
-                    {driverName?.charAt(0) || 'D'}
+                {!isAdmin && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold">
+                      {driverName?.charAt(0) || 'D'}
+                    </div>
+                    <span className="text-sm font-bold text-black">{driverName || 'Driver'}</span>
                   </div>
-                  <span className="text-sm font-bold text-black">{driverName || 'Driver'}</span>
-                </div>
+                )}
                 <button
                   onClick={handleLogout}
                   className="text-sm font-bold text-red-500 hover:text-red-600 transition-colors"
