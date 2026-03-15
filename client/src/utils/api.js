@@ -12,7 +12,7 @@ const api = axios.create({
 // Add token to requests if available
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -51,6 +51,7 @@ export const ratingAPI = {
 
 // Admin APIs
 export const adminAPI = {
+  login: (data) => api.post('/auth/admin/login', data),
   getDrivers: (page = 0, size = 20) =>
     api.get(`/admin/drivers?page=${page}&size=${size}`),
   getDriver: (driverId) => api.get(`/admin/drivers/${driverId}`),
@@ -59,6 +60,7 @@ export const adminAPI = {
   getBookings: (page = 0, size = 20) =>
     api.get(`/admin/bookings?page=${page}&size=${size}`),
   getBooking: (bookingId) => api.get(`/admin/bookings/${bookingId}`),
+  getRiders: () => api.get('/admin/riders'),
   getStats: () => api.get('/admin/stats'),
 };
 
