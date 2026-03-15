@@ -27,7 +27,7 @@ api.interceptors.request.use(
 export const driverAPI = {
   register: (data) => api.post('/drivers/register', data),
   login: (data) => api.post('/auth/driver/login', data),
-  getAvailable: (pincode) => api.get(`/drivers/available?pincode=${pincode}`),
+  getAvailable: (query) => api.get(`/drivers/available?query=${query}`),
   updateAvailability: (driverId, available) =>
     api.patch(`/drivers/${driverId}/availability?available=${available}`),
   updateProfile: (driverId, data) =>

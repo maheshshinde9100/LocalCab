@@ -100,7 +100,7 @@ function DriverRegister() {
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Full Name</label>
-                      <input name="fullName" required value={formData.fullName} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3.5 px-6 focus:ring-2 focus:ring-black font-bold transition-all" placeholder="John Doe" />
+                      <input name="fullName" required value={formData.fullName} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3.5 px-6 focus:ring-2 focus:ring-black font-bold transition-all" placeholder="Mahesh Shinde" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Phone Number</label>

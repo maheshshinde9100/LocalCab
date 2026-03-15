@@ -29,15 +29,15 @@ public class DriverController {
      * Frontend can show this list and allow user to tap to call the driver.
      */
     @GetMapping("/available")
-    public ResponseEntity<List<DriverResponse>> findAvailableByPincode(@RequestParam String pincode) {
-        List<DriverResponse> drivers = driverService.findAvailableDriversByPincode(pincode);
+    public ResponseEntity<List<DriverResponse>> findAvailableByLocation(@RequestParam("query") String query) {
+        List<DriverResponse> drivers = driverService.findAvailableDriversByLocation(query);
         return ResponseEntity.ok(drivers);
     }
 
     @PatchMapping("/{driverId}/availability")
     public ResponseEntity<Void> updateAvailability(
-            @PathVariable String driverId,
-            @RequestParam boolean available
+            @PathVariable("driverId") String driverId,
+            @RequestParam("available") boolean available
     ) {
         driverService.updateAvailability(driverId, available);
         return ResponseEntity.noContent().build();
@@ -45,7 +45,7 @@ public class DriverController {
 
     @PutMapping("/{driverId}/profile")
     public ResponseEntity<DriverResponse> updateProfile(
-            @PathVariable String driverId,
+            @PathVariable("driverId") String driverId,
             @Valid @RequestBody RegisterDriverRequest updateRequest
     ) {
         DriverResponse updated = driverService.updateProfile(driverId, updateRequest);

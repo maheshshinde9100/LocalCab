@@ -42,7 +42,7 @@ public class BookingController {
      */
     @PatchMapping("/{bookingId}/status")
     public ResponseEntity<BookingResponse> updateStatus(
-            @PathVariable String bookingId,
+            @PathVariable("bookingId") String bookingId,
             @Valid @RequestBody UpdateStatusRequest request
     ) {
         BookingResponse response = bookingService.updateStatus(bookingId, request);

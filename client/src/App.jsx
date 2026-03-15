@@ -7,6 +7,8 @@ import DriverDashboard from './pages/DriverDashboard';
 import AvailableDrivers from './pages/AvailableDrivers';
 import CreateBooking from './pages/CreateBooking';
 import RateDriver from './pages/RateDriver';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 import Developer from './pages/Developer';
 import NotFound from './pages/NotFound';
 import ScrollToTop from './utils/ScrollToTop';
@@ -15,6 +17,10 @@ import Footer from './components/Footer';
 
 function ProtectedRoute({ children }) {
   return auth.isAuthenticated() ? children : <Navigate to="/driver/login" />;
+}
+
+function AdminRoute({ children }) {
+  return auth.isAdminAuthenticated() ? children : <Navigate to="/admin/login" />;
 }
 
 function App() {
@@ -40,6 +46,18 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route 
+              path="/admin/dashboard" 
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              } 
+            />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

@@ -3,24 +3,25 @@ import { driverAPI, ratingAPI } from '../utils/api';
 import DriverCard from '../components/DriverCard';
 
 function AvailableDrivers() {
-  const [pincode, setPincode] = useState('');
+  const [locationQuery, setLocationQuery] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (auth.isAuthenticated()) {
+      navigate('/driver/dashboard');
+    }
+  }, [navigate]);
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [ratings, setRatings] = useState({});
+  const [locating, setLocating] = useState(false);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!pincode || pincode.length !== 6) {
-      setError('Please enter a valid 6-digit pincode');
-      return;
-    }
-
+  const fetchDriversByPincode = async (targetPincode) => {
     setLoading(true);
     setError('');
-
     try {
-      const response = await driverAPI.getAvailable(pincode);
+      const response = await driverAPI.getAvailable(targetPincode);
       setDrivers(response.data);
 
       const ratingPromises = response.data.map(async (driver) => {
@@ -45,6 +46,57 @@ function AvailableDrivers() {
     }
   };
 
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!locationQuery || locationQuery.length < 3) {
+      setError('Please enter a valid pincode or city name (min. 3 characters)');
+      return;
+    }
+    fetchDriversByPincode(locationQuery);
+  };
+
+  const handleUseLocation = () => {
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by your browser');
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          // Use Nominatim for reverse geocoding to get pincode
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          );
+          const data = await response.json();
+          const detectedPincode = data.address?.postcode;
+
+          if (detectedPincode) {
+            const cleanedPincode = detectedPincode.replace(/\D/g, '').slice(0, 6);
+            if (cleanedPincode.length === 6) {
+              setLocationQuery(cleanedPincode);
+              fetchDriversByPincode(cleanedPincode);
+            } else {
+              setError(`Detected pincode (${detectedPincode}) is invalid. Please enter manually.`);
+            }
+          } else {
+            setError('Could not detect pincode. Please enter manually.');
+          }
+        } catch (err) {
+          setError('Failed to get location details. Please enter pincode manually.');
+        } finally {
+          setLocating(false);
+        }
+      },
+      (err) => {
+        setError('Location permission denied or unavailable.');
+        setLocating(false);
+      }
+    );
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header Section */}
@@ -67,12 +119,27 @@ function AvailableDrivers() {
               </div>
               <input
                 type="text"
-                value={pincode}
-                onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="Where's your pickup? (Enter 6 digit pincode)"
-                maxLength={6}
-                className="w-full pl-16 pr-6 py-5 bg-gray-50 border-none rounded-[2rem] focus:ring-2 focus:ring-black transition text-lg font-bold placeholder:text-gray-300"
+                value={locationQuery}
+                onChange={(e) => setLocationQuery(e.target.value)}
+                placeholder="Enter pincode or city name"
+                className="w-full pl-16 pr-16 py-5 bg-gray-50 border-none rounded-[2rem] focus:ring-2 focus:ring-black transition text-lg font-bold placeholder:text-gray-300"
               />
+              <button
+                type="button"
+                onClick={handleUseLocation}
+                disabled={locating}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-black transition-colors"
+                title="Use Current Location"
+              >
+                {locating ? (
+                  <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
+                ) : (
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                )}
+              </button>
             </div>
             <button
               type="submit"
@@ -95,19 +162,19 @@ function AvailableDrivers() {
           </div>
         )}
 
-        {!loading && drivers.length === 0 && pincode.length === 6 && (
+        {!loading && drivers.length === 0 && locationQuery.length >= 3 && (
           <div className="text-center py-32 animate-fade-in">
             <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-8 border-2 border-dashed border-gray-200">
               <span className="text-4xl text-gray-200">🚖</span>
             </div>
             <h3 className="text-3xl font-black text-black mb-3">No drivers found</h3>
-            <p className="text-gray-400 font-medium">Try a nearby pincode or search again in a few minutes.</p>
+            <p className="text-gray-400 font-medium">Try a nearby village, city, or search again in a few minutes.</p>
           </div>
         )}
 
         {drivers.length > 0 && (
           <div className="mb-12 flex items-center justify-between opacity-0 animate-fade-in-up">
-            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400">Available Near {pincode}</h2>
+            <h2 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400">Available Near {locationQuery}</h2>
             <span className="bg-black text-white text-[10px] font-black px-3 py-1 rounded-full uppercase italic">{drivers.length} matched</span>
           </div>
         )}

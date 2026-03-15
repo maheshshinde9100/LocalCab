@@ -21,8 +21,8 @@ public class AdminController {
      */
     @GetMapping("/drivers")
     public ResponseEntity<List<DriverSummaryResponse>> getAllDrivers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size
     ) {
         List<DriverSummaryResponse> drivers = adminService.getAllDrivers(page, size);
         return ResponseEntity.ok(drivers);
@@ -32,7 +32,7 @@ public class AdminController {
      * Admin-only: Get driver by ID.
      */
     @GetMapping("/drivers/{driverId}")
-    public ResponseEntity<DriverSummaryResponse> getDriverById(@PathVariable String driverId) {
+    public ResponseEntity<DriverSummaryResponse> getDriverById(@PathVariable("driverId") String driverId) {
         DriverSummaryResponse driver = adminService.getDriverById(driverId);
         return ResponseEntity.ok(driver);
     }
@@ -41,7 +41,7 @@ public class AdminController {
      * Admin-only: Block a driver (set available to false).
      */
     @PostMapping("/drivers/{driverId}/block")
-    public ResponseEntity<DriverSummaryResponse> blockDriver(@PathVariable String driverId) {
+    public ResponseEntity<DriverSummaryResponse> blockDriver(@PathVariable("driverId") String driverId) {
         DriverSummaryResponse driver = adminService.blockDriver(driverId);
         return ResponseEntity.ok(driver);
     }
@@ -50,7 +50,7 @@ public class AdminController {
      * Admin-only: Unblock a driver (set available to true).
      */
     @PostMapping("/drivers/{driverId}/unblock")
-    public ResponseEntity<DriverSummaryResponse> unblockDriver(@PathVariable String driverId) {
+    public ResponseEntity<DriverSummaryResponse> unblockDriver(@PathVariable("driverId") String driverId) {
         DriverSummaryResponse driver = adminService.unblockDriver(driverId);
         return ResponseEntity.ok(driver);
     }
@@ -60,8 +60,8 @@ public class AdminController {
      */
     @GetMapping("/bookings")
     public ResponseEntity<List<BookingSummaryResponse>> getAllBookings(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size
     ) {
         List<BookingSummaryResponse> bookings = adminService.getAllBookings(page, size);
         return ResponseEntity.ok(bookings);
@@ -71,7 +71,7 @@ public class AdminController {
      * Admin-only: Get booking by ID.
      */
     @GetMapping("/bookings/{bookingId}")
-    public ResponseEntity<BookingSummaryResponse> getBookingById(@PathVariable String bookingId) {
+    public ResponseEntity<BookingSummaryResponse> getBookingById(@PathVariable("bookingId") String bookingId) {
         BookingSummaryResponse booking = adminService.getBookingById(bookingId);
         return ResponseEntity.ok(booking);
     }

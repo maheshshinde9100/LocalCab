@@ -41,6 +41,7 @@ function Footer() {
                             <li><Link to="/" className="hover:text-white transition-colors">Safety</Link></li>
                             <li><Link to="/developer" className="hover:text-white transition-colors">Contact Us</Link></li>
                             <li><Link to="/developer" className="hover:text-white transition-colors">Developer Details</Link></li>
+                            <li><Link to="/admin/login" className="text-gray-600 hover:text-white transition-colors">Admin Portal</Link></li>
                         </ul>
                     </div>
                 </div>

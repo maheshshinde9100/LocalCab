@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom';
+import { auth } from '../utils/auth';
 
 function Home() {
+  const isDriver = auth.isAuthenticated();
+  const isAdmin = auth.isAdminAuthenticated();
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -23,23 +27,37 @@ function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-5">
-              <Link
-                to="/drivers/available"
-                className="group relative flex items-center justify-center bg-white text-uber-black text-lg font-bold px-10 py-5 rounded-full hover:bg-gray-100 transition-all transform hover:scale-105 hover:shadow-2xl overflow-hidden"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  Request a Ride
-                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                </span>
-                <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-gray-100 to-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </Link>
+              {!isDriver && !isAdmin ? (
+                <>
+                  <Link
+                    to="/drivers/available"
+                    className="group relative flex items-center justify-center bg-white text-uber-black text-lg font-bold px-10 py-5 rounded-full hover:bg-gray-100 transition-all transform hover:scale-105 hover:shadow-2xl overflow-hidden"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      Request a Ride
+                      <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </span>
+                    <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-gray-100 to-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </Link>
 
-              <Link
-                to="/drivers/register"
-                className="group relative flex items-center justify-center bg-transparent border-2 border-white/30 text-white text-lg font-bold px-10 py-5 rounded-full hover:border-white hover:bg-white/5 transition-all"
-              >
-                Drive & Earn
-              </Link>
+                  <Link
+                    to="/drivers/register"
+                    className="group relative flex items-center justify-center bg-transparent border-2 border-white/30 text-white text-lg font-bold px-10 py-5 rounded-full hover:border-white hover:bg-white/5 transition-all"
+                  >
+                    Drive & Earn
+                  </Link>
+                </>
+              ) : (
+                <Link
+                  to={isAdmin ? "/admin/dashboard" : "/driver/dashboard"}
+                  className="group relative flex items-center justify-center bg-white text-uber-black text-lg font-bold px-10 py-5 rounded-full hover:bg-gray-100 transition-all transform hover:scale-105 hover:shadow-2xl overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    Back to Dashboard
+                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                  </span>
+                </Link>
+              )}
             </div>
           </div>
         </div>

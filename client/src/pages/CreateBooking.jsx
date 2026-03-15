@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { auth } from '../utils/auth';
 import { bookingAPI, aiAPI } from '../utils/api';
 
 function CreateBooking() {
@@ -7,10 +8,12 @@ function CreateBooking() {
   const [searchParams] = useSearchParams();
   const driverIdFromUrl = searchParams.get('driverId');
 
+  const rider = auth.getRiderDetails();
+
   const [formData, setFormData] = useState({
     driverId: driverIdFromUrl || '',
-    riderName: '',
-    riderPhoneNumber: '',
+    riderName: rider.name || '',
+    riderPhoneNumber: rider.phone || '',
     pickupVillage: '',
     pickupLandmark: '',
     dropLocation: '',
@@ -18,6 +21,8 @@ function CreateBooking() {
     vehicleType: 'Sedan', // Default
     approximateKm: 10,
   });
+
+  const [showLogin, setShowLogin] = useState(!auth.isRiderAuthenticated());
 
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState(null);
@@ -54,6 +59,16 @@ function CreateBooking() {
   const applySuggestion = () => {
     if (aiSuggestion) {
       setFormData({ ...formData, agreedFare: aiSuggestion.suggestedMinFare });
+    }
+  };
+
+  const handleRiderLogin = (e) => {
+    e.preventDefault();
+    if (formData.riderName && formData.riderPhoneNumber) {
+      auth.setRiderSession(formData.riderName, formData.riderPhoneNumber);
+      setShowLogin(false);
+    } else {
+      setError('Please enter your name and phone number to continue');
     }
   };
 
@@ -103,65 +118,112 @@ function CreateBooking() {
             <div className="md:col-span-3 p-8 sm:p-12 border-b md:border-b-0 md:border-r border-gray-100">
               <h2 className="text-2xl font-bold text-black mb-8">Ride Details</h2>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Your Name</label>
-                    <input name="riderName" required value={formData.riderName} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Phone Number</label>
-                    <input name="riderPhoneNumber" type="tel" required value={formData.riderPhoneNumber} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium" />
-                  </div>
-                </div>
-
-                <div className="space-y-4 pt-4 border-t border-gray-50">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Pickup Village</label>
-                    <div className="relative">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-black"></div>
-                      <input name="pickupVillage" required value={formData.pickupVillage} onChange={handleChange} className="w-full pl-10 pr-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black font-medium" placeholder="E.g. Shivajinagar" />
+              {showLogin ? (
+                <div className="space-y-8 animate-fade-in">
+                  <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100">
+                    <p className="text-sm text-gray-600 font-medium mb-4">Please identify yourself to book a ride. We'll remember you for next time.</p>
+                    <div className="grid gap-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Your Full Name</label>
+                        <input
+                          name="riderName"
+                          required
+                          value={formData.riderName}
+                          onChange={handleChange}
+                          placeholder="Mahesh Shinde"
+                          className="w-full bg-white border border-gray-100 rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Phone Number</label>
+                        <input
+                          name="riderPhoneNumber"
+                          type="tel"
+                          required
+                          value={formData.riderPhoneNumber}
+                          onChange={handleChange}
+                          placeholder="9876543210"
+                          className="w-full bg-white border border-gray-100 rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Drop Point</label>
-                    <div className="relative">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 w-2 h-2 border-2 border-black"></div>
-                      <input name="dropLocation" required value={formData.dropLocation} onChange={handleChange} className="w-full pl-10 pr-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black font-medium" placeholder="E.g. Bus Stand, City Center" />
+                  <button
+                    onClick={handleRiderLogin}
+                    className="w-full bg-black text-white py-5 rounded-2xl text-lg font-black hover:bg-gray-800 transition-all active:scale-95 shadow-xl"
+                  >
+                    CONTINUE TO BOOKING
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl mb-8">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center font-bold text-sm">
+                        {formData.riderName.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Booking as</p>
+                        <p className="text-sm font-black text-black">{formData.riderName}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowLogin(true)}
+                      className="text-xs font-bold text-blue-600 hover:underline"
+                    >
+                      Change
+                    </button>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t border-gray-50">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Pickup Village</label>
+                      <div className="relative">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-black"></div>
+                        <input name="pickupVillage" required value={formData.pickupVillage} onChange={handleChange} className="w-full pl-10 pr-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black font-medium" placeholder="E.g. Shivajinagar" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Drop Point</label>
+                      <div className="relative">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-2 h-2 border-2 border-black"></div>
+                        <input name="dropLocation" required value={formData.dropLocation} onChange={handleChange} className="w-full pl-10 pr-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-black font-medium" placeholder="E.g. Bus Stand, City Center" />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Vehicle Type</label>
-                    <select name="vehicleType" value={formData.vehicleType} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium appearance-none">
-                      <option>Sedan</option>
-                      <option>SUV</option>
-                      <option>Auto</option>
-                      <option>Hatchback</option>
-                    </select>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Vehicle Type</label>
+                      <select name="vehicleType" value={formData.vehicleType} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium appearance-none">
+                        <option>Sedan</option>
+                        <option>SUV</option>
+                        <option>Auto</option>
+                        <option>Hatchback</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Approx KM</label>
+                      <input name="approximateKm" type="number" value={formData.approximateKm} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium" />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Approx KM</label>
-                    <input name="approximateKm" type="number" value={formData.approximateKm} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium" />
+
+                  <div className="pt-6">
+                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Agreed Fare (₹)</label>
+                    <div className="mt-2 flex gap-3">
+                      <input name="agreedFare" type="number" required value={formData.agreedFare} onChange={handleChange} className="flex-1 bg-black text-white text-2xl font-black rounded-2xl py-4 px-6 focus:ring-2 focus:ring-gray-700 outline-none" placeholder="0.00" />
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-2 font-medium">Finalize the price with the driver before booking.</p>
                   </div>
-                </div>
 
-                <div className="pt-6">
-                  <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Agreed Fare (₹)</label>
-                  <div className="mt-2 flex gap-3">
-                    <input name="agreedFare" type="number" required value={formData.agreedFare} onChange={handleChange} className="flex-1 bg-black text-white text-2xl font-black rounded-2xl py-4 px-6 focus:ring-2 focus:ring-gray-700 outline-none" placeholder="0.00" />
-                  </div>
-                  <p className="text-[10px] text-gray-400 mt-2 font-medium">Finalize the price with the driver before booking.</p>
-                </div>
+                  {error && <p className="text-red-500 text-sm font-bold bg-red-50 p-4 rounded-2xl">{error}</p>}
 
-                {error && <p className="text-red-500 text-sm font-bold bg-red-50 p-4 rounded-2xl">{error}</p>}
-
-                <button type="submit" disabled={loading} className="w-full bg-black text-white py-5 rounded-2xl text-lg font-black hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-50 shadow-xl mt-4">
-                  {loading ? 'Confirming...' : 'CONFIRM BOOKING'}
-                </button>
-              </form>
+                  <button type="submit" disabled={loading} className="w-full bg-black text-white py-5 rounded-2xl text-lg font-black hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-50 shadow-xl mt-4">
+                    {loading ? 'Confirming...' : 'CONFIRM BOOKING'}
+                  </button>
+                </form>
+              )}
             </div>
 
             {/* Right Column: AI Assistant */}
