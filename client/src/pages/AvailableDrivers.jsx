@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { driverAPI, ratingAPI } from '../utils/api';
+import { auth } from '../utils/auth';
 import DriverCard from '../components/DriverCard';
 
 function AvailableDrivers() {

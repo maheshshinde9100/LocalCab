@@ -27,6 +27,7 @@ function DriverLogin() {
       auth.setDriverId(response.data.driverId);
       localStorage.setItem('driverName', response.data.fullName);
       localStorage.setItem('driverPhone', response.data.phoneNumber);
+      localStorage.setItem('driverVerified', response.data.verified);
       navigate('/driver/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Check your credentials and try again.');
