@@ -67,6 +67,11 @@ public class AdminController {
         return ResponseEntity.ok(bookings);
     }
 
+    @GetMapping("/riders")
+    public ResponseEntity<List<RiderSummaryResponse>> getAllRiders() {
+        return ResponseEntity.ok(adminService.getAllRiders());
+    }
+
     /**
      * Admin-only: Get booking by ID.
      */
