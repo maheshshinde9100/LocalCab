@@ -42,11 +42,26 @@ public class DriverService {
         return toResponse(saved);
     }
 
-    public List<DriverResponse> findAvailableDriversByPincode(String pincode) {
-        return driverRepository.findByAvailableTrueAndPincode(pincode)
+    public List<DriverResponse> findAvailableDriversByLocation(String query) {
+        if (query == null || query.isBlank()) return List.of();
+        
+        // If query is a 6-digit numeric string, search by pincode
+        if (query.matches("\\d{6}")) {
+            return driverRepository.findByAvailableTrueAndPincode(query)
+                    .stream()
+                    .map(this::toResponse)
+                    .collect(Collectors.toList());
+        }
+        
+        // Otherwise search by village name
+        return driverRepository.findByAvailableTrueAndVillageIgnoreCase(query)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    public List<DriverResponse> findAvailableDriversByPincode(String pincode) {
+        return findAvailableDriversByLocation(pincode);
     }
 
     public void updateAvailability(String driverId, boolean available) {
