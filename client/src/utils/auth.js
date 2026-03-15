@@ -18,6 +18,11 @@ export const auth = {
     localStorage.setItem('riderPhone', phone);
   },
   
+  // Admin Session
+  isAdminAuthenticated: () => !!localStorage.getItem('adminToken'),
+  getAdminToken: () => localStorage.getItem('adminToken'),
+  setAdminToken: (token) => localStorage.setItem('adminToken', token),
+
   logout: () => {
     localStorage.clear();
   },
