@@ -22,6 +22,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final DriverRepository driverRepository;
 
+    @org.springframework.beans.factory.annotation.Value("${localcab.admin.username}")
+    private String adminUsername;
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -39,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String username = jwtService.extractUsername(jwt);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            boolean isAdmin = "admin-mahesh".equals(username);
+            boolean isAdmin = adminUsername.equals(username);
             
             if (isAdmin && jwtService.isTokenValid(jwt, username)) {
                 var userDetails = User.withUsername(username)
