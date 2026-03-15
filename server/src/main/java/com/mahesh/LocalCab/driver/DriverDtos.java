@@ -60,6 +60,7 @@ public class DriverDtos {
         private String vehicleNumber;
         private Integer totalSeats;
         private boolean available;
+        private boolean verified;
     }
 }
 

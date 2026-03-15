@@ -9,10 +9,10 @@ public interface DriverRepository extends MongoRepository<Driver, String> {
 
     Optional<Driver> findByPhoneNumber(String phoneNumber);
 
-    List<Driver> findByAvailableTrueAndPincode(String pincode);
+    List<Driver> findByAvailableTrueAndVerifiedTrueAndPincode(String pincode);
     
-    List<Driver> findByAvailableTrueAndVillageIgnoreCase(String village);
+    List<Driver> findByAvailableTrueAndVerifiedTrueAndVillageIgnoreCase(String village);
 
-    long countByAvailableTrue();
+    long countByAvailableTrueAndVerifiedTrue();
 }
 
