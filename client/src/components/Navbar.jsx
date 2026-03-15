@@ -23,13 +23,10 @@ function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Home</Link>
-            <Link to="/drivers/available" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Find Taxi</Link>
-            <Link to="/developer" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Developer</Link>
-
             {isAuthenticated ? (
               <div className="flex items-center gap-6">
                 <Link to="/driver/dashboard" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Dashboard</Link>
+                <Link to="/developer" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Developer</Link>
                 <div className="h-6 w-px bg-gray-200"></div>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold">
@@ -45,19 +42,25 @@ function Navbar() {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-4">
-                <Link
-                  to="/drivers/register"
-                  className="text-sm font-bold text-gray-900 hover:text-black transition-colors"
-                >
-                  Ride with us
-                </Link>
-                <Link
-                  to="/driver/login"
-                  className="bg-black text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-800 transition-all active:scale-95 shadow-lg shadow-black/10"
-                >
-                  Driver Login
-                </Link>
+              <div className="flex items-center gap-8">
+                <Link to="/" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Home</Link>
+                <Link to="/drivers/available" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Find Taxi</Link>
+                <Link to="/developer" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Developer</Link>
+                <div className="h-6 w-px bg-gray-200"></div>
+                <div className="flex items-center gap-4">
+                  <Link
+                    to="/drivers/register"
+                    className="text-sm font-bold text-gray-900 hover:text-black transition-colors"
+                  >
+                    Ride with us
+                  </Link>
+                  <Link
+                    to="/driver/login"
+                    className="bg-black text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-800 transition-all active:scale-95 shadow-lg shadow-black/10"
+                  >
+                    Driver Login
+                  </Link>
+                </div>
               </div>
             )}
           </div>

@@ -9,6 +9,7 @@ function DriverDashboard() {
   const [error, setError] = useState('');
   const [available, setAvailable] = useState(true);
   const [ratings, setRatings] = useState(null);
+  const [activeTab, setActiveTab] = useState('active'); // 'active', 'past', 'collections'
 
   useEffect(() => {
     loadBookings();
@@ -128,10 +129,22 @@ function DriverDashboard() {
           {/* Right Column: Bookings Feed */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-gray-100 min-h-[500px] opacity-0 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold text-black">Active Tasks</h2>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+                <div className="flex bg-gray-100 p-1 rounded-2xl">
+                  {['active', 'past', 'collections'].map((tab) => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab)}
+                      className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-black text-white shadow-lg' : 'text-gray-400 hover:text-black'}`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
                 <span className="bg-gray-100 text-gray-500 font-bold px-4 py-1.5 rounded-full text-xs uppercase tracking-widest">
-                  {bookings.length} Bookings
+                  {activeTab === 'active' ? bookings.filter(b => b.status !== 'COMPLETED' && b.status !== 'CANCELLED').length : 
+                   activeTab === 'past' ? bookings.filter(b => b.status === 'COMPLETED' || b.status === 'CANCELLED').length :
+                   bookings.filter(b => b.status === 'COMPLETED').length} Items
                 </span>
               </div>
 
@@ -140,17 +153,47 @@ function DriverDashboard() {
                   <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin mb-4"></div>
                   <p className="font-bold uppercase tracking-widest text-sm text-gray-400">Syncing with server...</p>
                 </div>
+              ) : activeTab === 'collections' ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-green-50 p-6 rounded-[2rem] border border-green-100">
+                      <p className="text-green-600 font-black uppercase text-[10px] tracking-widest mb-2">Total Earnings</p>
+                      <p className="text-3xl font-black text-green-700">₹{bookings.filter(b => b.status === 'COMPLETED').reduce((acc, b) => acc + b.agreedFare, 0)}</p>
+                    </div>
+                    <div className="bg-blue-50 p-6 rounded-[2rem] border border-blue-100">
+                      <p className="text-blue-600 font-black uppercase text-[10px] tracking-widest mb-2">Completed Trips</p>
+                      <p className="text-3xl font-black text-blue-700">{bookings.filter(b => b.status === 'COMPLETED').length}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    {bookings.filter(b => b.status === 'COMPLETED').map(b => (
+                      <div key={b.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 text-sm">
+                        <div>
+                          <p className="font-bold text-black">{b.riderName}</p>
+                          <p className="text-xs text-gray-400">{b.pickupVillage} → {b.dropLocation}</p>
+                        </div>
+                        <p className="font-black text-black">+₹{b.agreedFare}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               ) : (
                 <div className="space-y-6">
-                  {bookings.length === 0 ? (
+                  {(activeTab === 'active' ? 
+                    bookings.filter(b => b.status !== 'COMPLETED' && b.status !== 'CANCELLED') :
+                    bookings.filter(b => b.status === 'COMPLETED' || b.status === 'CANCELLED')
+                  ).length === 0 ? (
                     <div className="text-center py-20">
                       <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-gray-200">
                         <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       </div>
-                      <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">No active ride requests</p>
+                      <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">No {activeTab} rides</p>
                     </div>
                   ) : (
-                    bookings.map((booking) => {
+                    (activeTab === 'active' ? 
+                      bookings.filter(b => b.status !== 'COMPLETED' && b.status !== 'CANCELLED') :
+                      bookings.filter(b => b.status === 'COMPLETED' || b.status === 'CANCELLED')
+                    ).map((booking) => {
                       const cfg = getStatusConfig(booking.status);
                       return (
                         <div key={booking.id} className="group relative bg-gray-50 border border-gray-100 rounded-3xl p-6 hover:bg-white hover:shadow-2xl hover:border-black transition-all duration-300">
