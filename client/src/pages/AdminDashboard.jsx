@@ -3,9 +3,10 @@ import { adminAPI } from '../utils/api';
 import { auth } from '../utils/auth';
 
 function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('drivers'); // 'drivers', 'bookings', 'inbox'
+  const [activeTab, setActiveTab] = useState('drivers'); // 'drivers', 'bookings', 'riders', 'inbox'
   const [drivers, setDrivers] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [riders, setRiders] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -16,13 +17,15 @@ function AdminDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [driversRes, bookingsRes, statsRes] = await Promise.all([
+      const [driversRes, bookingsRes, ridersRes, statsRes] = await Promise.all([
         adminAPI.getDrivers(),
         adminAPI.getBookings(),
+        adminAPI.getRiders(),
         adminAPI.getStats()
       ]);
       setDrivers(driversRes.data);
       setBookings(bookingsRes.data);
+      setRiders(ridersRes.data);
       setStats(statsRes.data);
     } catch (err) {
       console.error('Failed to load admin data', err);
@@ -49,13 +52,18 @@ function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <div className="w-64 bg-black text-white flex flex-col p-8 sticky top-0 h-screen">
-        <div className="flex items-center gap-3 mb-12">
-          <div className="w-10 h-10 bg-white text-black flex items-center justify-center font-black rounded-xl">A</div>
-          <span className="font-black tracking-tighter text-xl">Admin Panel</span>
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-white text-black flex items-center justify-center font-black rounded-xl">A</div>
+            <span className="font-black tracking-tighter text-xl">Admin Panel</span>
+          </div>
+          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest pl-1">
+            {localStorage.getItem('adminUsername') || 'System Admin'}
+          </p>
         </div>
 
         <nav className="flex-1 space-y-4">
-          {['drivers', 'bookings', 'inbox'].map((tab) => (
+          {['drivers', 'bookings', 'riders', 'inbox'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -130,15 +138,15 @@ function AdminDashboard() {
                           <p className="text-[10px] text-gray-400 font-bold italic">{driver.vehicleNumber}</p>
                         </td>
                         <td className="px-8 py-6">
-                          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${driver.available ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                            {driver.available ? 'ONLINE' : 'BLOCKED/OFF'}
+                          <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${driver.verified ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                            {driver.verified ? 'VERIFIED' : 'PENDING'}
                           </span>
                         </td>
                         <td className="px-8 py-6">
-                          {driver.available ? (
+                          {driver.verified ? (
                             <button onClick={() => handleBlockDriver(driver.id)} className="text-red-500 font-black hover:underline">Block</button>
                           ) : (
-                            <button onClick={() => handleUnblockDriver(driver.id)} className="text-green-600 font-black hover:underline">Verify/Unblock</button>
+                            <button onClick={() => handleUnblockDriver(driver.id)} className="text-green-600 font-black hover:underline">Verify</button>
                           )}
                         </td>
                       </tr>
@@ -181,15 +189,44 @@ function AdminDashboard() {
               </div>
             )}
 
+            {activeTab === 'riders' && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100">
+                      <th className="px-8 py-6 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Rider Name</th>
+                      <th className="px-8 py-6 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Phone Number</th>
+                      <th className="px-8 py-6 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Total Lifetime Rides</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 font-medium text-sm">
+                    {riders.map((rider, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-8 py-6">
+                          <p className="font-black text-black">{rider.riderName}</p>
+                        </td>
+                        <td className="px-8 py-6">
+                          <p className="text-black">{rider.riderPhoneNumber}</p>
+                        </td>
+                        <td className="px-8 py-6">
+                          <p className="font-black text-black">{rider.totalBookings}</p>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
             {activeTab === 'inbox' && (
               <div className="p-12">
                 <div className="max-w-xl">
                   <h3 className="text-xl font-bold mb-8">Verification Requests</h3>
                   <div className="space-y-4">
-                    {drivers.filter(d => !d.available).length === 0 ? (
+                    {drivers.filter(d => !d.verified).length === 0 ? (
                       <p className="text-gray-400 italic">No pending notifications</p>
                     ) : (
-                      drivers.filter(d => !d.available).map(d => (
+                      drivers.filter(d => !d.verified).map(d => (
                         <div key={d.id} className="bg-gray-50 p-6 rounded-3xl border border-gray-100 flex justify-between items-center group hover:bg-black hover:text-white transition-all cursor-pointer">
                           <div>
                             <p className="font-black uppercase tracking-widest text-[10px] text-gray-400 group-hover:text-gray-500 mb-1">New Driver Registered</p>

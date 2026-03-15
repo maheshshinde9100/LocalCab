@@ -35,7 +35,8 @@ public class DriverService {
                 .vehicleModel(request.getVehicleModel())
                 .vehicleNumber(request.getVehicleNumber())
                 .totalSeats(request.getTotalSeats())
-                .available(true)
+                .available(false)
+                .verified(false)
                 .build();
 
         Driver saved = driverRepository.save(driver);
@@ -47,14 +48,14 @@ public class DriverService {
         
         // If query is a 6-digit numeric string, search by pincode
         if (query.matches("\\d{6}")) {
-            return driverRepository.findByAvailableTrueAndPincode(query)
+            return driverRepository.findByAvailableTrueAndVerifiedTrueAndPincode(query)
                     .stream()
                     .map(this::toResponse)
                     .collect(Collectors.toList());
         }
         
         // Otherwise search by village name
-        return driverRepository.findByAvailableTrueAndVillageIgnoreCase(query)
+        return driverRepository.findByAvailableTrueAndVerifiedTrueAndVillageIgnoreCase(query)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
@@ -105,6 +106,7 @@ public class DriverService {
                 .vehicleNumber(driver.getVehicleNumber())
                 .totalSeats(driver.getTotalSeats())
                 .available(driver.isAvailable())
+                .verified(driver.isVerified())
                 .build();
     }
 }

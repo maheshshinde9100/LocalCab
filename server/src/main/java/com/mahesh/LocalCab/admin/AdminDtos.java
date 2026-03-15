@@ -24,6 +24,7 @@ public class AdminDtos {
         private String vehicleNumber;
         private Integer totalSeats;
         private boolean available;
+        private boolean verified;
         private Instant createdAt;
     }
 
@@ -41,6 +42,14 @@ public class AdminDtos {
         private Double agreedFare;
         private BookingStatus status;
         private Instant createdAt;
+    }
+
+    @Data
+    @Builder
+    public static class RiderSummaryResponse {
+        private String riderName;
+        private String riderPhoneNumber;
+        private Long totalBookings;
     }
 
     @Data

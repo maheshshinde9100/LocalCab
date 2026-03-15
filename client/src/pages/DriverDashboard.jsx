@@ -8,13 +8,20 @@ function DriverDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [available, setAvailable] = useState(true);
+  const [verified, setVerified] = useState(true);
   const [ratings, setRatings] = useState(null);
   const [activeTab, setActiveTab] = useState('active'); // 'active', 'past', 'collections'
 
   useEffect(() => {
     loadBookings();
     loadRatings();
+    checkVerification();
   }, []);
+
+  const checkVerification = () => {
+    const v = localStorage.getItem('driverVerified');
+    setVerified(v === 'true');
+  };
 
   const loadBookings = async () => {
     try {
@@ -36,6 +43,10 @@ function DriverDashboard() {
   };
 
   const handleToggleAvailability = async () => {
+    if (!verified) {
+      alert('Your account is pending verification. Please contact support.');
+      return;
+    }
     try {
       await driverAPI.updateAvailability(driverId, !available);
       setAvailable(!available);
@@ -92,6 +103,12 @@ function DriverDashboard() {
           </div>
         </div>
       </div>
+
+      {!verified && (
+        <div className="bg-yellow-400 text-black py-4 px-4 text-center font-black animate-pulse">
+          ⚠️ ACCOUNT PENDING VERIFICATION. You will not appear in search results until approved by Admin.
+        </div>
+      )}
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
         <div className="grid lg:grid-cols-3 gap-8">

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../utils/auth';
+import { adminAPI } from '../utils/api';
 
 function AdminLogin() {
   const navigate = useNavigate();
@@ -15,20 +16,21 @@ function AdminLogin() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    // Hardcoded admin for demo/initial setup
-    // In a real app, this would be an API call
-    if (formData.username === 'admin' && formData.password === 'admin123') {
-      auth.setAdminToken('mock-admin-jwt-token');
+    try {
+      const response = await adminAPI.login(formData);
+      auth.setAdminToken(response.data.token);
+      localStorage.setItem('adminUsername', response.data.username);
       navigate('/admin/dashboard');
-    } else {
-      setError('Invalid admin credentials');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid admin credentials');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

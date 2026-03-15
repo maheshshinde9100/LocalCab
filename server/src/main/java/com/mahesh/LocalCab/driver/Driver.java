@@ -52,6 +52,7 @@ public class Driver {
     private Integer totalSeats;
 
     private boolean available;
+    private boolean verified; // Admin approval status
 
     @CreatedDate
     private Instant createdAt;

@@ -36,24 +36,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String jwt = authHeader.substring(7);
-        final String phoneNumber = jwtService.extractUsername(jwt);
+        final String username = jwtService.extractUsername(jwt);
 
-        if (phoneNumber != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            var driverOpt = driverRepository.findByPhoneNumber(phoneNumber);
-            if (driverOpt.isPresent() && jwtService.isTokenValid(jwt, phoneNumber)) {
-                var userDetails = User.withUsername(phoneNumber)
-                        .password("") // password not needed here
-                        .authorities("ROLE_DRIVER")
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            boolean isAdmin = "admin-mahesh".equals(username);
+            
+            if (isAdmin && jwtService.isTokenValid(jwt, username)) {
+                var userDetails = User.withUsername(username)
+                        .password("")
+                        .authorities("ROLE_ADMIN")
                         .build();
 
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                // Check if it's a driver
+                var driverOpt = driverRepository.findByPhoneNumber(username);
+                if (driverOpt.isPresent() && jwtService.isTokenValid(jwt, username)) {
+                    var userDetails = User.withUsername(username)
+                            .password("")
+                            .authorities("ROLE_DRIVER")
+                            .build();
+
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
         }
 

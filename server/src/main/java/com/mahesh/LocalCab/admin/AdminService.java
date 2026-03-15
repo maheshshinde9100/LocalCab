@@ -40,7 +40,7 @@ public class AdminService {
     public DriverSummaryResponse blockDriver(String driverId) {
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new IllegalArgumentException("Driver not found"));
-        driver.setAvailable(false);
+        driver.setVerified(false);
         Driver saved = driverRepository.save(driver);
         return toDriverSummary(saved);
     }
@@ -48,7 +48,7 @@ public class AdminService {
     public DriverSummaryResponse unblockDriver(String driverId) {
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new IllegalArgumentException("Driver not found"));
-        driver.setAvailable(true);
+        driver.setVerified(true);
         Driver saved = driverRepository.save(driver);
         return toDriverSummary(saved);
     }
@@ -61,6 +61,22 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
+    public List<RiderSummaryResponse> getAllRiders() {
+        List<Booking> allBookings = bookingRepository.findAll();
+        return allBookings.stream()
+                .collect(Collectors.groupingBy(Booking::getRiderPhoneNumber))
+                .entrySet().stream()
+                .map(entry -> {
+                    Booking first = entry.getValue().get(0);
+                    return RiderSummaryResponse.builder()
+                            .riderName(first.getRiderName())
+                            .riderPhoneNumber(entry.getKey())
+                            .totalBookings((long) entry.getValue().size())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
     public BookingSummaryResponse getBookingById(String bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
@@ -69,7 +85,7 @@ public class AdminService {
 
     public AdminStatsResponse getAdminStats() {
         long totalDrivers = driverRepository.count();
-        long availableDrivers = driverRepository.countByAvailableTrue();
+        long availableDrivers = driverRepository.countByAvailableTrueAndVerifiedTrue();
         long totalBookings = bookingRepository.count();
         long completedBookings = bookingRepository.countByStatus(BookingStatus.COMPLETED);
         long ongoingBookings = bookingRepository.countByStatus(BookingStatus.ONGOING);
@@ -98,6 +114,7 @@ public class AdminService {
                 .vehicleNumber(driver.getVehicleNumber())
                 .totalSeats(driver.getTotalSeats())
                 .available(driver.isAvailable())
+                .verified(driver.isVerified())
                 .createdAt(driver.getCreatedAt())
                 .build();
     }

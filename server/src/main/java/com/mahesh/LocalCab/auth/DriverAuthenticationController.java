@@ -40,6 +40,7 @@ public class DriverAuthenticationController {
         response.setDriverId(driver.getId());
         response.setFullName(driver.getFullName());
         response.setPhoneNumber(driver.getPhoneNumber());
+        response.setVerified(driver.isVerified());
         return response;
     }
 
@@ -58,6 +59,7 @@ public class DriverAuthenticationController {
         private String driverId;
         private String fullName;
         private String phoneNumber;
+        private boolean verified;
     }
 }
 
