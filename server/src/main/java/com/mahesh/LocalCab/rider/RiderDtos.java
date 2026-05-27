@@ -1,59 +1,67 @@
-package com.mahesh.LocalCab.driver;
+package com.mahesh.LocalCab.rider;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-public class DriverDtos {
+public class RiderDtos {
 
     @Data
-    public static class RegisterDriverRequest {
-
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RegisterRequest {
         @NotBlank
         private String fullName;
 
         @NotBlank
-        @Size(min = 10, max = 20)
+        @Pattern(regexp = "^[6-9]\\d{9}$", message = "Invalid phone number")
         private String phoneNumber;
 
         @NotBlank
-        @Size(min = 6, max = 100)
         private String password;
 
-        @NotBlank
+        private String email;
         private String village;
-
         private String taluka;
         private String district;
         private String state;
-
-        @NotBlank
-        @Pattern(regexp = "\\d{6}", message = "Pincode must be 6 digits")
         private String pincode;
-
-        @NotBlank
-        private String vehicleType;
-
-        private String vehicleModel;
-
-        @NotBlank
-        private String vehicleNumber;
-
-        private Integer totalSeats;
     }
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class DriverResponse {
+    public static class LoginRequest {
+        @NotBlank
+        private String phoneNumber;
+
+        @NotBlank
+        private String password;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AuthResponse {
+        private String token;
+        private RiderResponse rider;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RiderResponse {
         private String id;
         private String fullName;
         private String phoneNumber;
+        private String email;
         private String village;
         private String taluka;
         private String district;
@@ -61,12 +69,6 @@ public class DriverDtos {
         private String pincode;
         private Double latitude;
         private Double longitude;
-        private String vehicleType;
-        private String vehicleModel;
-        private String vehicleNumber;
-        private Integer totalSeats;
-        private boolean available;
-        private boolean verified;
     }
 
     @Data

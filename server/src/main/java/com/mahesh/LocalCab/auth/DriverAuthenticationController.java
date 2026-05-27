@@ -34,7 +34,7 @@ public class DriverAuthenticationController {
     }
 
     private LoginResponse buildLoginResponse(Driver driver) {
-        String token = jwtService.generateToken(driver.getPhoneNumber());
+        String token = jwtService.generateToken(driver.getPhoneNumber(), "DRIVER");
         LoginResponse response = new LoginResponse();
         response.setToken(token);
         response.setDriverId(driver.getId());

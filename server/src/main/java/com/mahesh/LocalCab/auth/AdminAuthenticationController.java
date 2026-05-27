@@ -16,23 +16,24 @@ public class AdminAuthenticationController {
 
     private final JwtService jwtService;
 
-    // Hardcoded credentials as requested by user
-    private static final String ADMIN_USERNAME = "admin-mahesh";
-    private static final String ADMIN_PASSWORD = "Mahesh@123";
+    @org.springframework.beans.factory.annotation.Value("${localcab.admin.username}")
+    private String adminUsername;
+
+    @org.springframework.beans.factory.annotation.Value("${localcab.admin.password}")
+    private String adminPassword;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AdminLoginRequest request) {
-        if (ADMIN_USERNAME.equals(request.getUsername()) && ADMIN_PASSWORD.equals(request.getPassword())) {
-            String token = jwtService.generateToken(ADMIN_USERNAME);
+        if (adminUsername.equals(request.getUsername()) && adminPassword.equals(request.getPassword())) {
+            String token = jwtService.generateToken(adminUsername, "ADMIN");
             return ResponseEntity.ok(Map.of(
                     "token", token,
-                    "username", ADMIN_USERNAME,
+                    "username", adminUsername,
                     "role", "ADMIN"
             ));
-        }
-        
+        }  
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("message", "Invalid admin credentials"));
+            .body(Map.of("message", "Invalid admin credentials"));
     }
 
     @Data

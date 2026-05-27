@@ -28,8 +28,12 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers("/api/drivers/register").permitAll()
                         .requestMatchers("/api/drivers/available").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll() // permit all auth endpoints (driver and admin)
-                        .requestMatchers("/api/bookings").permitAll() // create booking is public
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/riders/register").permitAll()
+                        .requestMatchers("/api/riders/login").permitAll()
+                        .requestMatchers("/api/bookings").permitAll()
+                        .requestMatchers("/api/bookings/rider/**").permitAll()
+                        .requestMatchers("/api/bookings/**").permitAll()
                         .requestMatchers("/api/ratings/**").permitAll()
                         .requestMatchers("/api/ai/**").permitAll()
                         // Admin endpoints require ADMIN role

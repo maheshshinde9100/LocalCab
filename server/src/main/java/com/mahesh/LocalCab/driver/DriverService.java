@@ -91,6 +91,15 @@ public class DriverService {
         return toResponse(saved);
     }
 
+    public DriverResponse updateLocation(String driverId, DriverDtos.UpdateLocationRequest request) {
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new IllegalArgumentException("Driver not found"));
+        driver.setLatitude(request.getLatitude());
+        driver.setLongitude(request.getLongitude());
+        Driver saved = driverRepository.save(driver);
+        return toResponse(saved);
+    }
+
     private DriverResponse toResponse(Driver driver) {
         return DriverResponse.builder()
                 .id(driver.getId())
@@ -101,6 +110,8 @@ public class DriverService {
                 .district(driver.getDistrict())
                 .state(driver.getState())
                 .pincode(driver.getPincode())
+                .latitude(driver.getLatitude())
+                .longitude(driver.getLongitude())
                 .vehicleType(driver.getVehicleType())
                 .vehicleModel(driver.getVehicleModel())
                 .vehicleNumber(driver.getVehicleNumber())

@@ -12,7 +12,7 @@ const api = axios.create({
 // Add token to requests if available
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token') || localStorage.getItem('adminToken');
+    const token = localStorage.getItem('token') || localStorage.getItem('adminToken') || localStorage.getItem('riderToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -32,14 +32,29 @@ export const driverAPI = {
     api.patch(`/drivers/${driverId}/availability?available=${available}`),
   updateProfile: (driverId, data) =>
     api.put(`/drivers/${driverId}/profile`, data),
+  updateLocation: (driverId, data) =>
+    api.put(`/drivers/${driverId}/location`, data),
+};
+
+// Rider APIs
+export const riderAPI = {
+  register: (data) => api.post('/riders/register', data),
+  login: (data) => api.post('/riders/login', data),
+  getProfile: (riderId) => api.get(`/riders/profile/${riderId}`),
+  updateLocation: (riderId, data) =>
+    api.put(`/riders/profile/${riderId}/location`, data),
 };
 
 // Booking APIs
 export const bookingAPI = {
   create: (data) => api.post('/bookings', data),
   getMyBookings: () => api.get('/bookings/me'),
-  updateStatus: (bookingId, status) =>
-    api.patch(`/bookings/${bookingId}/status`, { status }),
+  getBookingsByRiderId: (riderId) => api.get(`/bookings/rider/${riderId}`),
+  getBookingById: (bookingId) => api.get(`/bookings/${bookingId}`),
+  updateStatus: (bookingId, status, cancellationReason) =>
+    api.patch(`/bookings/${bookingId}/status`, { status, cancellationReason }),
+  cancelByRider: (bookingId, riderId, cancellationReason) =>
+    api.patch(`/bookings/${bookingId}/cancel/${riderId}`, { cancellationReason }),
 };
 
 // Rating APIs
