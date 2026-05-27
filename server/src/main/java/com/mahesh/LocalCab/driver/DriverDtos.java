@@ -3,8 +3,10 @@ package com.mahesh.LocalCab.driver;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 public class DriverDtos {
 
@@ -46,6 +48,8 @@ public class DriverDtos {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class DriverResponse {
         private String id;
         private String fullName;
@@ -55,6 +59,8 @@ public class DriverDtos {
         private String district;
         private String state;
         private String pincode;
+        private Double latitude;
+        private Double longitude;
         private String vehicleType;
         private String vehicleModel;
         private String vehicleNumber;
@@ -62,6 +68,13 @@ public class DriverDtos {
         private boolean available;
         private boolean verified;
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UpdateLocationRequest {
+        private Double latitude;
+        private Double longitude;
+    }
 }
-
-

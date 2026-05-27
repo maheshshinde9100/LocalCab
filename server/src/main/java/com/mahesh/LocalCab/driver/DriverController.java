@@ -51,6 +51,15 @@ public class DriverController {
         DriverResponse updated = driverService.updateProfile(driverId, updateRequest);
         return ResponseEntity.ok(updated);
     }
+
+    @PutMapping("/{driverId}/location")
+    public ResponseEntity<DriverResponse> updateLocation(
+            @PathVariable("driverId") String driverId,
+            @Valid @RequestBody DriverDtos.UpdateLocationRequest request
+    ) {
+        DriverResponse updated = driverService.updateLocation(driverId, request);
+        return ResponseEntity.ok(updated);
+    }
 }
 
 
