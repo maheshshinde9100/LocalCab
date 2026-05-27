@@ -38,6 +38,24 @@ public class BookingController {
     }
 
     /**
+     * Get bookings for a specific rider
+     */
+    @GetMapping("/rider/{riderId}")
+    public ResponseEntity<List<BookingResponse>> getBookingsByRiderId(@PathVariable String riderId) {
+        List<BookingResponse> bookings = bookingService.getBookingsByRiderId(riderId);
+        return ResponseEntity.ok(bookings);
+    }
+
+    /**
+     * Get a specific booking by ID
+     */
+    @GetMapping("/{bookingId}")
+    public ResponseEntity<BookingResponse> getBookingById(@PathVariable String bookingId) {
+        BookingResponse booking = bookingService.getBookingById(bookingId);
+        return ResponseEntity.ok(booking);
+    }
+
+    /**
      * Driver-only: update booking status (CONFIRMED, ONGOING, COMPLETED, CANCELLED).
      */
     @PatchMapping("/{bookingId}/status")
@@ -46,6 +64,19 @@ public class BookingController {
             @Valid @RequestBody UpdateStatusRequest request
     ) {
         BookingResponse response = bookingService.updateStatus(bookingId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Rider-only: cancel a booking
+     */
+    @PatchMapping("/{bookingId}/cancel/{riderId}")
+    public ResponseEntity<BookingResponse> cancelBookingByRider(
+            @PathVariable String bookingId,
+            @PathVariable String riderId,
+            @Valid @RequestBody UpdateStatusRequest request
+    ) {
+        BookingResponse response = bookingService.cancelBookingByRider(bookingId, riderId, request);
         return ResponseEntity.ok(response);
     }
 }

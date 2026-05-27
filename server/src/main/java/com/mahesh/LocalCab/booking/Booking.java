@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -24,20 +25,44 @@ public class Booking {
     private String driverId;
     private String driverPhoneNumber;
 
-    // Rider information (we keep this simple; no separate user account yet)
+    // Link to rider
+    private String riderId;
     private String riderName;
     private String riderPhoneNumber;
 
-    // Trip details (after phone negotiation)
+    // Trip details
     private String pickupVillage;
     private String pickupLandmark;
     private String dropLocation;
-    private Double agreedFare; // total agreed fare in local currency
+
+    // GPS coordinates
+    private Double pickupLatitude;
+    private Double pickupLongitude;
+    private Double dropLatitude;
+    private Double dropLongitude;
+
+    // Fare & distance
+    private Double agreedFare;
+    private Double distanceKm;
+
+    // Timestamps for each status
+    private Instant requestedAt;
+    private Instant confirmedAt;
+    private Instant ongoingAt;
+    private Instant completedAt;
+    private Instant cancelledAt;
+
+    // Cancellation details
+    private String cancellationReason;
+    private String cancelledBy;
 
     private BookingStatus status;
 
     @CreatedDate
     private Instant createdAt;
+
+    @LastModifiedDate
+    private Instant updatedAt;
 }
 
 
