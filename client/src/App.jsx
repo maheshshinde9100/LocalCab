@@ -11,12 +11,19 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import Developer from './pages/Developer';
 import NotFound from './pages/NotFound';
+import RiderRegister from './pages/RiderRegister';
+import RiderLogin from './pages/RiderLogin';
+import RiderDashboard from './pages/RiderDashboard';
 import ScrollToTop from './utils/ScrollToTop';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
 function ProtectedRoute({ children }) {
   return auth.isAuthenticated() ? children : <Navigate to="/driver/login" />;
+}
+
+function RiderProtectedRoute({ children }) {
+  return auth.isRiderAuthenticated() ? children : <Navigate to="/rider/login" />;
 }
 
 function AdminRoute({ children }) {
@@ -38,6 +45,19 @@ function App() {
             <Route path="/bookings/create" element={<CreateBooking />} />
             <Route path="/ratings/create" element={<RateDriver />} />
             <Route path="/developer" element={<Developer />} />
+            
+            {/* Rider Routes */}
+            <Route path="/rider/register" element={<RiderRegister />} />
+            <Route path="/rider/login" element={<RiderLogin />} />
+            <Route
+              path="/rider/dashboard"
+              element={
+                <RiderProtectedRoute>
+                  <RiderDashboard />
+                </RiderProtectedRoute>
+              }
+            />
+
             <Route
               path="/driver/dashboard"
               element={

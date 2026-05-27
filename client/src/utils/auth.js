@@ -7,16 +7,14 @@ export const auth = {
   setDriverId: (id) => localStorage.setItem('driverId', id),
   removeDriverId: () => localStorage.removeItem('driverId'),
   
-  // Rider (Client) Mock Session
-  isRiderAuthenticated: () => !!localStorage.getItem('riderPhone'),
-  getRiderDetails: () => ({
-    name: localStorage.getItem('riderName'),
-    phone: localStorage.getItem('riderPhone'),
-  }),
-  setRiderSession: (name, phone) => {
-    localStorage.setItem('riderName', name);
-    localStorage.setItem('riderPhone', phone);
-  },
+  // Rider (Client) Session
+  getRiderToken: () => localStorage.getItem('riderToken'),
+  setRiderToken: (token) => localStorage.setItem('riderToken', token),
+  removeRiderToken: () => localStorage.removeItem('riderToken'),
+  isRiderAuthenticated: () => !!localStorage.getItem('riderToken'),
+  getRiderId: () => localStorage.getItem('riderId'),
+  setRiderId: (id) => localStorage.setItem('riderId', id),
+  removeRiderId: () => localStorage.removeItem('riderId'),
   
   // Admin Session
   isAdminAuthenticated: () => !!localStorage.getItem('adminToken'),
