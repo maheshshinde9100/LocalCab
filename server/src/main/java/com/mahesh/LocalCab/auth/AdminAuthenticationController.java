@@ -25,16 +25,15 @@ public class AdminAuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AdminLoginRequest request) {
         if (adminUsername.equals(request.getUsername()) && adminPassword.equals(request.getPassword())) {
-            String token = jwtService.generateToken(adminUsername);
+            String token = jwtService.generateToken(adminUsername, "ADMIN");
             return ResponseEntity.ok(Map.of(
                     "token", token,
                     "username", adminUsername,
                     "role", "ADMIN"
             ));
-        }
-        
+        }  
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("message", "Invalid admin credentials"));
+            .body(Map.of("message", "Invalid admin credentials"));
     }
 
     @Data
