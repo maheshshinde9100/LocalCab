@@ -21,6 +21,7 @@ function RiderLogin() {
       const response = await riderAPI.login(formData);
       auth.setRiderToken(response.data.token);
       auth.setRiderId(response.data.rider.id);
+      auth.setRiderDetails(response.data.rider.fullName, response.data.rider.phoneNumber);
       navigate('/rider/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');

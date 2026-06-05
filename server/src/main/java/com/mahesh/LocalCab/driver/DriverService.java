@@ -44,7 +44,12 @@ public class DriverService {
     }
 
     public List<DriverResponse> findAvailableDriversByLocation(String query) {
-        if (query == null || query.isBlank()) return List.of();
+        if (query == null || query.isBlank() || "all".equalsIgnoreCase(query.trim())) {
+            return driverRepository.findByAvailableTrueAndVerifiedTrue()
+                    .stream()
+                    .map(this::toResponse)
+                    .collect(Collectors.toList());
+        }
         
         // If query is a 6-digit numeric string, search by pincode
         if (query.matches("\\d{6}")) {

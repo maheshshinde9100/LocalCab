@@ -87,7 +87,7 @@ function CreateBooking() {
         agreedFare: parseFloat(formData.agreedFare),
       });
       alert('Ride booked! The driver has been notified.');
-      navigate('/');
+      navigate('/rider/dashboard');
     } catch (err) {
       if (err.response?.data?.fieldErrors) {
         const fieldMsgs = Object.values(err.response.data.fieldErrors).join(', ');

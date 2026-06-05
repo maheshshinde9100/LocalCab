@@ -28,6 +28,7 @@ function RiderRegister() {
       const response = await riderAPI.register(formData);
       auth.setRiderToken(response.data.token);
       auth.setRiderId(response.data.rider.id);
+      auth.setRiderDetails(response.data.rider.fullName, response.data.rider.phoneNumber);
       navigate('/rider/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');

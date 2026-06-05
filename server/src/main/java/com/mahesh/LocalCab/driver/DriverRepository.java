@@ -13,6 +13,8 @@ public interface DriverRepository extends MongoRepository<Driver, String> {
     
     List<Driver> findByAvailableTrueAndVerifiedTrueAndVillageIgnoreCase(String village);
 
+    List<Driver> findByAvailableTrueAndVerifiedTrue();
+
     long countByAvailableTrueAndVerifiedTrue();
 }
 
