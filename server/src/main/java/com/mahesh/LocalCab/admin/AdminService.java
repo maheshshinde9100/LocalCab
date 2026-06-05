@@ -5,7 +5,11 @@ import com.mahesh.LocalCab.booking.BookingRepository;
 import com.mahesh.LocalCab.booking.BookingStatus;
 import com.mahesh.LocalCab.driver.Driver;
 import com.mahesh.LocalCab.driver.DriverRepository;
+import com.mahesh.LocalCab.rider.Rider;
+import com.mahesh.LocalCab.rider.RiderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,11 +26,19 @@ public class AdminService {
 
     private final DriverRepository driverRepository;
     private final BookingRepository bookingRepository;
+    private final RiderRepository riderRepository;
 
     public List<DriverSummaryResponse> getAllDrivers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Driver> drivers = driverRepository.findAll(pageable);
         return drivers.getContent().stream()
+                .map(this::toDriverSummary)
+                .collect(Collectors.toList());
+    }
+
+    @Cacheable(value = "pendingDrivers")
+    public List<DriverSummaryResponse> getPendingDrivers() {
+        return driverRepository.findByVerifiedFalse().stream()
                 .map(this::toDriverSummary)
                 .collect(Collectors.toList());
     }
@@ -37,18 +49,21 @@ public class AdminService {
         return toDriverSummary(driver);
     }
 
-    public DriverSummaryResponse blockDriver(String driverId) {
+    @CacheEvict(value = {"pendingDrivers", "availableDrivers", "driverProfile", "adminStats"}, allEntries = true)
+    public DriverSummaryResponse verifyDriver(String driverId) {
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new IllegalArgumentException("Driver not found"));
-        driver.setVerified(false);
+        driver.setVerified(true);
         Driver saved = driverRepository.save(driver);
         return toDriverSummary(saved);
     }
 
-    public DriverSummaryResponse unblockDriver(String driverId) {
+    @CacheEvict(value = {"pendingDrivers", "availableDrivers", "driverProfile", "adminStats"}, allEntries = true)
+    public DriverSummaryResponse blockDriver(String driverId) {
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new IllegalArgumentException("Driver not found"));
-        driver.setVerified(true);
+        driver.setVerified(false);
+        driver.setAvailable(false);
         Driver saved = driverRepository.save(driver);
         return toDriverSummary(saved);
     }
@@ -62,18 +77,14 @@ public class AdminService {
     }
 
     public List<RiderSummaryResponse> getAllRiders() {
-        List<Booking> allBookings = bookingRepository.findAll();
-        return allBookings.stream()
-                .collect(Collectors.groupingBy(Booking::getRiderPhoneNumber))
-                .entrySet().stream()
-                .map(entry -> {
-                    Booking first = entry.getValue().get(0);
-                    return RiderSummaryResponse.builder()
-                            .riderName(first.getRiderName())
-                            .riderPhoneNumber(entry.getKey())
-                            .totalBookings((long) entry.getValue().size())
-                            .build();
-                })
+        return riderRepository.findAll().stream()
+                .map(rider -> RiderSummaryResponse.builder()
+                        .id(rider.getId())
+                        .riderName(rider.getFullName())
+                        .riderPhoneNumber(rider.getPhoneNumber())
+                        .village(rider.getVillage())
+                        .totalBookings(bookingRepository.countByRiderId(rider.getId()))
+                        .build())
                 .collect(Collectors.toList());
     }
 
@@ -83,9 +94,11 @@ public class AdminService {
         return toBookingSummary(booking);
     }
 
+    @Cacheable(value = "adminStats")
     public AdminStatsResponse getAdminStats() {
         long totalDrivers = driverRepository.count();
         long availableDrivers = driverRepository.countByAvailableTrueAndVerifiedTrue();
+        long pendingDrivers = driverRepository.findByVerifiedFalse().size();
         long totalBookings = bookingRepository.count();
         long completedBookings = bookingRepository.countByStatus(BookingStatus.COMPLETED);
         long ongoingBookings = bookingRepository.countByStatus(BookingStatus.ONGOING);
@@ -93,6 +106,7 @@ public class AdminService {
         return AdminStatsResponse.builder()
                 .totalDrivers(totalDrivers)
                 .availableDrivers(availableDrivers)
+                .pendingDrivers(pendingDrivers)
                 .totalBookings(totalBookings)
                 .completedBookings(completedBookings)
                 .ongoingBookings(ongoingBookings)
@@ -135,4 +149,3 @@ public class AdminService {
                 .build();
     }
 }
-

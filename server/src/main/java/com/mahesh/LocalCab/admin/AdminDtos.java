@@ -47,8 +47,10 @@ public class AdminDtos {
     @Data
     @Builder
     public static class RiderSummaryResponse {
+        private String id;
         private String riderName;
         private String riderPhoneNumber;
+        private String village;
         private Long totalBookings;
     }
 
@@ -57,6 +59,7 @@ public class AdminDtos {
     public static class AdminStatsResponse {
         private Long totalDrivers;
         private Long availableDrivers;
+        private Long pendingDrivers;
         private Long totalBookings;
         private Long completedBookings;
         private Long ongoingBookings;

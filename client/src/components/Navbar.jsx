@@ -3,14 +3,20 @@ import { auth } from '../utils/auth';
 
 function Navbar() {
   const navigate = useNavigate();
-  const isAuthenticated = auth.isAuthenticated();
+  const isDriver = auth.isAuthenticated();
+  const isRider = auth.isRiderAuthenticated();
   const isAdmin = auth.isAdminAuthenticated();
-  const driverName = localStorage.getItem('driverName');
+  const isLoggedIn = isDriver || isRider || isAdmin;
+  const driverName = auth.getDriverName();
+  const riderDetails = auth.getRiderDetails();
 
   const handleLogout = () => {
     auth.logout();
     navigate('/');
   };
+
+  const dashboardPath = isAdmin ? '/admin/dashboard' : isDriver ? '/driver/dashboard' : '/rider/dashboard';
+  const displayName = isAdmin ? 'Admin' : isDriver ? (driverName || 'Driver') : (riderDetails.name || 'Rider');
 
   return (
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
@@ -24,19 +30,19 @@ function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center space-x-8">
-            {isAuthenticated || isAdmin ? (
+            {isLoggedIn ? (
               <div className="flex items-center gap-6">
-                <Link to={isAdmin ? "/admin/dashboard" : "/driver/dashboard"} className="text-sm font-bold text-gray-900 hover:text-black transition-colors">
-                  {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
+                <Link to={dashboardPath} className="text-sm font-bold text-gray-900 hover:text-black transition-colors">
+                  Dashboard
                 </Link>
                 <Link to="/developer" className="text-sm font-bold text-gray-900 hover:text-black transition-colors">Developer</Link>
                 <div className="h-6 w-px bg-gray-200"></div>
                 {!isAdmin && (
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold">
-                      {driverName?.charAt(0) || 'D'}
+                      {displayName.charAt(0)}
                     </div>
-                    <span className="text-sm font-bold text-black">{driverName || 'Driver'}</span>
+                    <span className="text-sm font-bold text-black">{displayName}</span>
                   </div>
                 )}
                 <button
@@ -54,23 +60,22 @@ function Navbar() {
                 <div className="h-6 w-px bg-gray-200"></div>
                 <div className="flex items-center gap-4">
                   <Link
-                    to="/drivers/register"
+                    to="/register"
                     className="text-sm font-bold text-gray-900 hover:text-black transition-colors"
                   >
-                    Ride with us
+                    Register
                   </Link>
                   <Link
-                    to="/driver/login"
+                    to="/login"
                     className="bg-black text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-gray-800 transition-all active:scale-95 shadow-lg shadow-black/10"
                   >
-                    Driver Login
+                    Login
                   </Link>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Mobile Menu Button - simplified for now */}
           <div className="md:hidden flex items-center">
             <Link to="/drivers/available" className="bg-black text-white px-4 py-2 rounded-full text-xs font-bold">Book Now</Link>
           </div>

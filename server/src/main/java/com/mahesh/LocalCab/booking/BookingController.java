@@ -40,6 +40,14 @@ public class BookingController {
     }
 
     /**
+     * Rider-only: list bookings for the currently authenticated rider.
+     */
+    @GetMapping("/rider/me")
+    public ResponseEntity<List<BookingResponse>> getMyRiderBookings() {
+        return ResponseEntity.ok(bookingService.getBookingsForCurrentRider());
+    }
+
+    /**
      * Get bookings for a specific rider
      */
     @GetMapping("/rider/{riderId}")

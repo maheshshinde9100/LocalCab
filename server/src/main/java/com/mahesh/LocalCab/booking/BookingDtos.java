@@ -78,6 +78,7 @@ public class BookingDtos {
         private BookingStatus status;
         private Instant requestedAt;
         private Instant confirmedAt;
+        private Instant bookedAt;
         private Instant ongoingAt;
         private Instant completedAt;
         private Instant cancelledAt;

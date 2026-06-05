@@ -1,7 +1,9 @@
 package com.mahesh.LocalCab.booking;
 
+import com.mahesh.LocalCab.config.GeocodingService;
 import com.mahesh.LocalCab.driver.Driver;
 import com.mahesh.LocalCab.driver.DriverRepository;
+import com.mahesh.LocalCab.rider.RiderRepository;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.Utils;
@@ -24,7 +26,9 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final DriverRepository driverRepository;
+    private final RiderRepository riderRepository;
     private final BookingSseService bookingSseService;
+    private final GeocodingService geocodingService;
 
     @Value("${razorpay.key.id}")
     private String razorpayKeyId;
@@ -38,16 +42,44 @@ public class BookingService {
     public BookingService(
             BookingRepository bookingRepository,
             DriverRepository driverRepository,
-            BookingSseService bookingSseService
+            RiderRepository riderRepository,
+            BookingSseService bookingSseService,
+            GeocodingService geocodingService
     ) {
         this.bookingRepository = bookingRepository;
         this.driverRepository = driverRepository;
+        this.riderRepository = riderRepository;
         this.bookingSseService = bookingSseService;
+        this.geocodingService = geocodingService;
     }
 
     public BookingResponse createBooking(CreateBookingRequest request) {
         Driver driver = driverRepository.findById(request.getDriverId())
                 .orElseThrow(() -> new IllegalArgumentException("Driver not found"));
+
+        if (!driver.isVerified()) {
+            throw new IllegalArgumentException("Selected driver is not verified yet");
+        }
+
+        Double pickupLat = request.getPickupLatitude();
+        Double pickupLng = request.getPickupLongitude();
+        Double dropLat = request.getDropLatitude();
+        Double dropLng = request.getDropLongitude();
+
+        if (pickupLat == null || pickupLng == null) {
+            double[] pickupCoords = geocodingService.geocode(request.getPickupVillage());
+            if (pickupCoords != null) {
+                pickupLat = pickupCoords[0];
+                pickupLng = pickupCoords[1];
+            }
+        }
+        if (dropLat == null || dropLng == null) {
+            double[] dropCoords = geocodingService.geocode(request.getDropLocation());
+            if (dropCoords != null) {
+                dropLat = dropCoords[0];
+                dropLng = dropCoords[1];
+            }
+        }
 
         Booking booking = Booking.builder()
                 .driverId(driver.getId())
@@ -58,10 +90,10 @@ public class BookingService {
                 .pickupVillage(request.getPickupVillage())
                 .pickupLandmark(request.getPickupLandmark())
                 .dropLocation(request.getDropLocation())
-                .pickupLatitude(request.getPickupLatitude())
-                .pickupLongitude(request.getPickupLongitude())
-                .dropLatitude(request.getDropLatitude())
-                .dropLongitude(request.getDropLongitude())
+                .pickupLatitude(pickupLat)
+                .pickupLongitude(pickupLng)
+                .dropLatitude(dropLat)
+                .dropLongitude(dropLng)
                 .agreedFare(request.getAgreedFare())
                 .distanceKm(request.getDistanceKm())
                 .status(BookingStatus.REQUESTED)
@@ -91,6 +123,11 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
+    public List<BookingResponse> getBookingsForCurrentRider() {
+        com.mahesh.LocalCab.rider.Rider rider = getCurrentRider();
+        return getBookingsByRiderId(rider.getId());
+    }
+
     public BookingResponse getBookingById(String bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
@@ -105,6 +142,8 @@ public class BookingService {
         if (!booking.getDriverId().equals(driver.getId())) {
             throw new SecurityException("You are not allowed to modify this booking");
         }
+
+        validateDriverStatusTransition(booking, request.getStatus());
 
         booking.setStatus(request.getStatus());
 
@@ -126,12 +165,48 @@ public class BookingService {
         return response;
     }
 
+    private void validateDriverStatusTransition(Booking booking, BookingStatus newStatus) {
+        BookingStatus current = booking.getStatus();
+        switch (newStatus) {
+            case CONFIRMED -> {
+                if (current != BookingStatus.REQUESTED) {
+                    throw new IllegalArgumentException("Only REQUESTED bookings can be confirmed");
+                }
+            }
+            case ONGOING -> {
+                if (current != BookingStatus.BOOKED) {
+                    throw new IllegalArgumentException("Trip can only start after customer payment (BOOKED status)");
+                }
+                if (!"COMPLETED".equals(booking.getPaymentStatus())) {
+                    throw new IllegalArgumentException("Payment must be completed before starting the trip");
+                }
+            }
+            case COMPLETED -> {
+                if (current != BookingStatus.ONGOING) {
+                    throw new IllegalArgumentException("Only ONGOING trips can be completed");
+                }
+            }
+            case CANCELLED -> {
+                if (current == BookingStatus.COMPLETED || current == BookingStatus.ONGOING) {
+                    throw new IllegalArgumentException("Cannot cancel a trip that is already in progress or completed");
+                }
+            }
+            default -> throw new IllegalArgumentException("Invalid status transition");
+        }
+    }
+
     public BookingResponse cancelBookingByRider(String bookingId, String riderId, UpdateStatusRequest request) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
-        if (!riderId.equals(booking.getRiderId())) {
+        if (booking.getRiderId() != null && !riderId.equals(booking.getRiderId())) {
             throw new SecurityException("You are not allowed to cancel this booking");
+        }
+
+        if (booking.getStatus() == BookingStatus.ONGOING
+                || booking.getStatus() == BookingStatus.COMPLETED
+                || booking.getStatus() == BookingStatus.BOOKED) {
+            throw new IllegalArgumentException("Cannot cancel booking at this stage");
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
@@ -166,11 +241,19 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
+        assertRiderOwnsBooking(booking);
+
+        if (booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new IllegalArgumentException("Payment is only available after the driver accepts your ride");
+        }
+        if ("COMPLETED".equals(booking.getPaymentStatus())) {
+            throw new IllegalArgumentException("Payment already completed for this booking");
+        }
+
         try {
             RazorpayClient razorpayClient = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
 
             JSONObject orderRequest = new JSONObject();
-            // Convert agreedFare (INR) to paise (1 INR = 100 paise)
             int amountInPaise = (int) Math.round(booking.getAgreedFare() * 100);
             orderRequest.put("amount", amountInPaise);
             orderRequest.put("currency", razorpayCurrency);
@@ -187,14 +270,22 @@ public class BookingService {
             BookingResponse response = toResponse(saved);
             bookingSseService.publish(saved.getId(), response);
             return response;
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create Razorpay Order: " + e.getMessage(), e);
+            throw new IllegalArgumentException("Failed to create Razorpay Order: " + e.getMessage());
         }
     }
 
     public BookingResponse verifyRazorpayPayment(String bookingId, String razorpayPaymentId, String razorpaySignature) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+
+        assertRiderOwnsBooking(booking);
+
+        if (booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new IllegalArgumentException("Payment verification not allowed at this stage");
+        }
 
         try {
             JSONObject options = new JSONObject();
@@ -208,6 +299,8 @@ public class BookingService {
                 booking.setPaymentStatus("COMPLETED");
                 booking.setRazorpayPaymentId(razorpayPaymentId);
                 booking.setPaymentMethod("RAZORPAY");
+                booking.setStatus(BookingStatus.BOOKED);
+                booking.setBookedAt(Instant.now());
             } else {
                 booking.setPaymentStatus("FAILED");
                 throw new IllegalArgumentException("Payment signature verification failed");
@@ -217,9 +310,27 @@ public class BookingService {
             BookingResponse response = toResponse(saved);
             bookingSseService.publish(saved.getId(), response);
             return response;
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Payment verification failed: " + e.getMessage(), e);
+            throw new IllegalArgumentException("Payment verification failed: " + e.getMessage());
         }
+    }
+
+    private void assertRiderOwnsBooking(Booking booking) {
+        com.mahesh.LocalCab.rider.Rider rider = getCurrentRider();
+        if (booking.getRiderId() != null && !booking.getRiderId().equals(rider.getId())) {
+            throw new SecurityException("You are not allowed to pay for this booking");
+        }
+    }
+
+    private com.mahesh.LocalCab.rider.Rider getCurrentRider() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new SecurityException("Rider not authenticated");
+        }
+        return riderRepository.findByPhoneNumber(authentication.getName())
+                .orElseThrow(() -> new SecurityException("Rider not found"));
     }
 
     private Driver getCurrentDriver() {
@@ -259,6 +370,7 @@ public class BookingService {
                 .driverLongitude(booking.getDriverLongitude())
                 .requestedAt(booking.getRequestedAt())
                 .confirmedAt(booking.getConfirmedAt())
+                .bookedAt(booking.getBookedAt())
                 .ongoingAt(booking.getOngoingAt())
                 .completedAt(booking.getCompletedAt())
                 .cancelledAt(booking.getCancelledAt())
@@ -269,6 +381,3 @@ public class BookingService {
                 .build();
     }
 }
-
-
-

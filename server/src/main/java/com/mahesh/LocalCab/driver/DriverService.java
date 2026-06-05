@@ -1,6 +1,10 @@
 package com.mahesh.LocalCab.driver;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -8,6 +12,7 @@ import java.util.stream.Collectors;
 
 import static com.mahesh.LocalCab.driver.DriverDtos.DriverResponse;
 import static com.mahesh.LocalCab.driver.DriverDtos.RegisterDriverRequest;
+import static com.mahesh.LocalCab.driver.DriverDtos.UpdateDriverProfileRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -43,38 +48,45 @@ public class DriverService {
         return toResponse(saved);
     }
 
+    @Cacheable(value = "availableDrivers", key = "#query")
     public List<DriverResponse> findAvailableDriversByLocation(String query) {
-        if (query == null || query.isBlank()) return List.of();
-        
-        // If query is a 6-digit numeric string, search by pincode
+        if (query == null || query.isBlank() || "all".equalsIgnoreCase(query.trim())) {
+            return driverRepository.findByAvailableTrueAndVerifiedTrue()
+                    .stream()
+                    .map(this::toResponse)
+                    .collect(Collectors.toList());
+        }
+
         if (query.matches("\\d{6}")) {
             return driverRepository.findByAvailableTrueAndVerifiedTrueAndPincode(query)
                     .stream()
                     .map(this::toResponse)
                     .collect(Collectors.toList());
         }
-        
-        // Otherwise search by village name
+
         return driverRepository.findByAvailableTrueAndVerifiedTrueAndVillageIgnoreCase(query)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
-    public List<DriverResponse> findAvailableDriversByPincode(String pincode) {
-        return findAvailableDriversByLocation(pincode);
+    public DriverResponse getCurrentDriverProfile() {
+        return toResponse(getCurrentDriver());
     }
 
+    @CacheEvict(value = {"driverProfile", "availableDrivers"}, allEntries = true)
     public void updateAvailability(String driverId, boolean available) {
-        Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new IllegalArgumentException("Driver not found"));
+        Driver driver = getOwnedDriver(driverId);
+        if (!driver.isVerified()) {
+            throw new SecurityException("Account pending admin verification");
+        }
         driver.setAvailable(available);
         driverRepository.save(driver);
     }
 
-    public DriverResponse updateProfile(String driverId, DriverDtos.RegisterDriverRequest update) {
-        Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new IllegalArgumentException("Driver not found"));
+    @CacheEvict(value = {"driverProfile", "availableDrivers"}, allEntries = true)
+    public DriverResponse updateProfile(String driverId, UpdateDriverProfileRequest update) {
+        Driver driver = getOwnedDriver(driverId);
 
         driver.setFullName(update.getFullName());
         driver.setVillage(update.getVillage());
@@ -91,13 +103,37 @@ public class DriverService {
         return toResponse(saved);
     }
 
+    @CacheEvict(value = {"driverProfile", "availableDrivers"}, allEntries = true)
     public DriverResponse updateLocation(String driverId, DriverDtos.UpdateLocationRequest request) {
-        Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new IllegalArgumentException("Driver not found"));
+        Driver driver = getOwnedDriver(driverId);
         driver.setLatitude(request.getLatitude());
         driver.setLongitude(request.getLongitude());
         Driver saved = driverRepository.save(driver);
         return toResponse(saved);
+    }
+
+    @Cacheable(value = "driverProfile", key = "#driverId")
+    public DriverResponse getDriverById(String driverId) {
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new IllegalArgumentException("Driver not found"));
+        return toResponse(driver);
+    }
+
+    private Driver getOwnedDriver(String driverId) {
+        Driver current = getCurrentDriver();
+        if (!current.getId().equals(driverId)) {
+            throw new SecurityException("You can only modify your own profile");
+        }
+        return current;
+    }
+
+    private Driver getCurrentDriver() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new SecurityException("Driver not authenticated");
+        }
+        return driverRepository.findByPhoneNumber(authentication.getName())
+                .orElseThrow(() -> new SecurityException("Driver not found"));
     }
 
     private DriverResponse toResponse(Driver driver) {
@@ -121,5 +157,3 @@ public class DriverService {
                 .build();
     }
 }
-
-

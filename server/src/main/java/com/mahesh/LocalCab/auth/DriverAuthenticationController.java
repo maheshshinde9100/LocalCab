@@ -2,6 +2,7 @@ package com.mahesh.LocalCab.auth;
 
 import com.mahesh.LocalCab.driver.Driver;
 import com.mahesh.LocalCab.driver.DriverRepository;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class DriverAuthenticationController {
     private final JwtService jwtService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         var driverOpt = driverRepository.findByPhoneNumber(request.getPhoneNumber())
                 .filter(driver -> passwordEncoder.matches(request.getPassword(), driver.getPasswordHash()));
         if (driverOpt.isPresent()) {

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { auth } from '../utils/auth';
 import { bookingAPI, aiAPI } from '../utils/api';
 
@@ -8,21 +8,22 @@ function CreateBooking() {
   const [searchParams] = useSearchParams();
   const driverIdFromUrl = searchParams.get('driverId');
 
-  const rider = auth.getRiderDetails();
+  const riderDetails = auth.getRiderDetails();
+  const isLoggedInRider = auth.isRiderAuthenticated();
 
   const [formData, setFormData] = useState({
     driverId: driverIdFromUrl || '',
-    riderName: rider.name || '',
-    riderPhoneNumber: rider.phone || '',
+    riderName: riderDetails.name || '',
+    riderPhoneNumber: riderDetails.phone || '',
     pickupVillage: '',
     pickupLandmark: '',
     dropLocation: '',
     agreedFare: '',
-    vehicleType: 'Sedan', // Default
+    vehicleType: searchParams.get('vehicleType') || 'Sedan',
     approximateKm: 10,
   });
 
-  const [showLogin, setShowLogin] = useState(!auth.isRiderAuthenticated());
+  const [showLogin, setShowLogin] = useState(!isLoggedInRider);
 
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState(null);
@@ -30,7 +31,9 @@ function CreateBooking() {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    const value = e.target.type === 'number' ? parseFloat(e.target.value) : e.target.value;
+    const value = e.target.type === 'number'
+      ? (e.target.value === '' ? '' : parseFloat(e.target.value))
+      : e.target.value;
     setFormData({ ...formData, [e.target.name]: value });
   };
 
@@ -62,11 +65,11 @@ function CreateBooking() {
     }
   };
 
-  const handleRiderLogin = (e) => {
+  const handleGuestContinue = (e) => {
     e.preventDefault();
     if (formData.riderName && formData.riderPhoneNumber) {
-      auth.setRiderSession(formData.riderName, formData.riderPhoneNumber);
       setShowLogin(false);
+      setError('');
     } else {
       setError('Please enter your name and phone number to continue');
     }
@@ -74,20 +77,28 @@ function CreateBooking() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.agreedFare) {
-      setError('Please set the agreed fare');
+    const fare = parseFloat(formData.agreedFare);
+    if (!formData.agreedFare || isNaN(fare) || fare <= 0) {
+      setError('Please set a valid agreed fare');
       return;
     }
     setLoading(true);
     setError('');
 
     try {
-      await bookingAPI.create({
-        ...formData,
-        agreedFare: parseFloat(formData.agreedFare),
+      const res = await bookingAPI.create({
+        driverId: formData.driverId,
+        riderId: isLoggedInRider ? auth.getRiderId() : undefined,
+        riderName: formData.riderName,
+        riderPhoneNumber: formData.riderPhoneNumber,
+        pickupVillage: formData.pickupVillage,
+        pickupLandmark: formData.pickupLandmark,
+        dropLocation: formData.dropLocation,
+        agreedFare: fare,
+        distanceKm: formData.approximateKm || undefined,
       });
       alert('Ride booked! The driver has been notified.');
-      navigate('/');
+      navigate(`/track/${res.data.id}`);
     } catch (err) {
       if (err.response?.data?.fieldErrors) {
         const fieldMsgs = Object.values(err.response.data.fieldErrors).join(', ');
@@ -121,7 +132,14 @@ function CreateBooking() {
               {showLogin ? (
                 <div className="space-y-8 animate-fade-in">
                   <div className="bg-gray-50 p-6 rounded-3xl border border-gray-100">
-                    <p className="text-sm text-gray-600 font-medium mb-4">Please identify yourself to book a ride. We'll remember you for next time.</p>
+                    <p className="text-sm text-gray-600 font-medium mb-4">
+                      Sign in for full features, or continue as a guest with your name and phone.
+                    </p>
+                    <div className="flex gap-3 mb-4">
+                      <Link to="/login" className="text-xs font-bold text-black hover:underline">Sign in</Link>
+                      <span className="text-gray-300">|</span>
+                      <Link to="/register" className="text-xs font-bold text-black hover:underline">Create account</Link>
+                    </div>
                     <div className="grid gap-4">
                       <div className="space-y-2">
                         <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Your Full Name</label>
@@ -149,10 +167,10 @@ function CreateBooking() {
                     </div>
                   </div>
                   <button
-                    onClick={handleRiderLogin}
+                    onClick={handleGuestContinue}
                     className="w-full bg-black text-white py-5 rounded-2xl text-lg font-black hover:bg-gray-800 transition-all active:scale-95 shadow-xl"
                   >
-                    CONTINUE TO BOOKING
+                    CONTINUE AS GUEST
                   </button>
                 </div>
               ) : (
@@ -193,20 +211,9 @@ function CreateBooking() {
                     </div>
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Vehicle Type</label>
-                      <select name="vehicleType" value={formData.vehicleType} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium appearance-none">
-                        <option>Sedan</option>
-                        <option>SUV</option>
-                        <option>Auto</option>
-                        <option>Hatchback</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Approx KM</label>
-                      <input name="approximateKm" type="number" value={formData.approximateKm} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium" />
-                    </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Approx KM</label>
+                    <input name="approximateKm" type="number" value={formData.approximateKm} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium" />
                   </div>
 
                   <div className="pt-6">
@@ -260,7 +267,7 @@ function CreateBooking() {
 
                 <div className="mt-8 p-6 bg-yellow-50 rounded-2xl border border-yellow-100">
                   <h4 className="text-yellow-800 font-bold text-xs uppercase mb-2">Notice</h4>
-                  <p className="text-yellow-700 text-[11px] font-medium">LocalCab only facilitates connections. All payments are handled directly between rider and driver.</p>
+                  <p className="text-yellow-700 text-[11px] font-medium">After the driver accepts your ride, you will pay via Razorpay to fully confirm the booking before the trip starts.</p>
                 </div>
               </div>
             </div>

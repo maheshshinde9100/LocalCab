@@ -3,7 +3,10 @@ import { auth } from '../utils/auth';
 
 function Home() {
   const isDriver = auth.isAuthenticated();
+  const isRider = auth.isRiderAuthenticated();
   const isAdmin = auth.isAdminAuthenticated();
+  const isLoggedIn = isDriver || isRider || isAdmin;
+  const dashboardPath = isAdmin ? '/admin/dashboard' : isDriver ? '/driver/dashboard' : '/rider/dashboard';
 
   return (
     <div className="min-h-screen bg-white">
@@ -27,7 +30,7 @@ function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-5">
-              {!isDriver && !isAdmin ? (
+              {!isLoggedIn ? (
                 <>
                   <Link
                     to="/drivers/available"
@@ -41,7 +44,7 @@ function Home() {
                   </Link>
 
                   <Link
-                    to="/drivers/register"
+                    to="/register"
                     className="group relative flex items-center justify-center bg-transparent border-2 border-white/30 text-white text-lg font-bold px-10 py-5 rounded-full hover:border-white hover:bg-white/5 transition-all"
                   >
                     Drive & Earn
@@ -49,7 +52,7 @@ function Home() {
                 </>
               ) : (
                 <Link
-                  to={isAdmin ? "/admin/dashboard" : "/driver/dashboard"}
+                  to={dashboardPath}
                   className="group relative flex items-center justify-center bg-white text-uber-black text-lg font-bold px-10 py-5 rounded-full hover:bg-gray-100 transition-all transform hover:scale-105 hover:shadow-2xl overflow-hidden"
                 >
                   <span className="relative z-10 flex items-center gap-2">

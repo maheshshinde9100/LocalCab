@@ -1,7 +1,13 @@
 package com.mahesh.LocalCab.rider;
 
 import com.mahesh.LocalCab.auth.JwtService;
+import com.mahesh.LocalCab.config.ConflictException;
+import com.mahesh.LocalCab.config.ResourceNotFoundException;
+import com.mahesh.LocalCab.config.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +21,7 @@ public class RiderService {
 
     public RiderDtos.AuthResponse register(RiderDtos.RegisterRequest request) {
         if (riderRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-            throw new RuntimeException("Phone number already registered");
+            throw new ConflictException("Phone number already registered");
         }
 
         Rider rider = Rider.builder()
@@ -41,10 +47,10 @@ public class RiderService {
 
     public RiderDtos.AuthResponse login(RiderDtos.LoginRequest request) {
         Rider rider = riderRepository.findByPhoneNumber(request.getPhoneNumber())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.getPassword(), rider.getPasswordHash())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new UnauthorizedException("Invalid credentials");
         }
 
         String token = jwtService.generateToken(rider.getPhoneNumber(), "RIDER");
@@ -55,19 +61,33 @@ public class RiderService {
                 .build();
     }
 
+    public RiderDtos.RiderResponse getCurrentRiderProfile() {
+        return toRiderResponse(getCurrentRider());
+    }
+
+    @Cacheable(value = "riderProfile", key = "#riderId")
     public RiderDtos.RiderResponse getRiderProfile(String riderId) {
         Rider rider = riderRepository.findById(riderId)
-                .orElseThrow(() -> new RuntimeException("Rider not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Rider not found"));
         return toRiderResponse(rider);
     }
 
     public RiderDtos.RiderResponse updateLocation(String riderId, RiderDtos.UpdateLocationRequest request) {
         Rider rider = riderRepository.findById(riderId)
-                .orElseThrow(() -> new RuntimeException("Rider not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Rider not found"));
         rider.setLatitude(request.getLatitude());
         rider.setLongitude(request.getLongitude());
         rider = riderRepository.save(rider);
         return toRiderResponse(rider);
+    }
+
+    private Rider getCurrentRider() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            throw new SecurityException("Rider not authenticated");
+        }
+        return riderRepository.findByPhoneNumber(authentication.getName())
+                .orElseThrow(() -> new SecurityException("Rider not found"));
     }
 
     private RiderDtos.RiderResponse toRiderResponse(Rider rider) {
