@@ -1,6 +1,8 @@
 package com.mahesh.LocalCab.auth;
 
+import com.mahesh.LocalCab.admin.AdminUserRepository;
 import com.mahesh.LocalCab.driver.DriverRepository;
+import com.mahesh.LocalCab.rider.RiderRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,9 +23,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final DriverRepository driverRepository;
-
-    @org.springframework.beans.factory.annotation.Value("${localcab.admin.username}")
-    private String adminUsername;
+    private final RiderRepository riderRepository;
+    private final AdminUserRepository adminUserRepository;
 
     @Override
     protected void doFilterInternal(
@@ -43,46 +44,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             final String username = jwtService.extractUsername(jwt);
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                boolean isAdmin = adminUsername.equals(username);
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null
+                    && jwtService.isTokenValid(jwt, username)) {
 
-                if (isAdmin && jwtService.isTokenValid(jwt, username)) {
-                    var userDetails = User.withUsername(username)
-                            .password("")
-                            .authorities("ROLE_ADMIN")
-                            .build();
+                String role = jwtService.extractClaim(jwt, claims -> claims.get("role", String.class));
 
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                } else {
-                    // Check if it's a driver
-                    var driverOpt = driverRepository.findByPhoneNumber(username);
-                    if (driverOpt.isPresent() && jwtService.isTokenValid(jwt, username)) {
-                        var userDetails = User.withUsername(username)
-                                .password("")
-                                .authorities("ROLE_DRIVER")
-                                .build();
-
-                        UsernamePasswordAuthenticationToken authToken =
-                                new UsernamePasswordAuthenticationToken(
-                                        userDetails,
-                                        null,
-                                        userDetails.getAuthorities()
-                                );
-                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(authToken);
-                    }
+                if ("ADMIN".equals(role) && adminUserRepository.findByUsername(username).isPresent()) {
+                    setAuthentication(request, username, "ROLE_ADMIN");
+                } else if ("DRIVER".equals(role) && driverRepository.findByPhoneNumber(username).isPresent()) {
+                    setAuthentication(request, username, "ROLE_DRIVER");
+                } else if ("RIDER".equals(role) && riderRepository.findByPhoneNumber(username).isPresent()) {
+                    setAuthentication(request, username, "ROLE_RIDER");
                 }
             }
         } catch (Exception ex) {
-            // Invalid or non-JWT token (e.g. mock tokens, malformed tokens) — skip authentication
-            // and let Spring Security decide based on endpoint permissions
+            // Invalid token — let Spring Security handle authorization
         }
 
         filterChain.doFilter(request, response);
     }
+
+    private void setAuthentication(HttpServletRequest request, String username, String authority) {
+        var userDetails = User.withUsername(username)
+                .password("")
+                .authorities(authority)
+                .build();
+
+        UsernamePasswordAuthenticationToken authToken =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+        SecurityContextHolder.getContext().setAuthentication(authToken);
+    }
 }
-
-
