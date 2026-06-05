@@ -47,6 +47,33 @@ public class DriverDtos {
     }
 
     @Data
+    public static class UpdateDriverProfileRequest {
+        @NotBlank
+        private String fullName;
+
+        @NotBlank
+        private String village;
+
+        private String taluka;
+        private String district;
+        private String state;
+
+        @NotBlank
+        @Pattern(regexp = "\\d{6}", message = "Pincode must be 6 digits")
+        private String pincode;
+
+        @NotBlank
+        private String vehicleType;
+
+        private String vehicleModel;
+
+        @NotBlank
+        private String vehicleNumber;
+
+        private Integer totalSeats;
+    }
+
+    @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor

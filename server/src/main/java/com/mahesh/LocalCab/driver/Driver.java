@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -23,9 +24,7 @@ public class Driver {
 
     private String fullName;
 
-    /**
-     * Unique phone number (we enforce this via queries, and you can add a unique index in Mongo).
-     */
+    @Indexed(unique = true)
     private String phoneNumber;
 
     /**
