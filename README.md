@@ -1,6 +1,6 @@
 # LocalCab
 
-A rural-first cab booking platform connecting local drivers with customers across villages and small towns in India. LocalCab supports three roles — **Customer (Rider)**, **Driver**, and **Admin** — with JWT authentication, Razorpay payments, live booking tracking, and admin driver verification.
+A rural-first cab booking platform connecting local drivers with customers across villages and small towns in India. LocalCab supports three roles - **Customer (Rider)**, **Driver**, and **Admin** - with JWT authentication, Razorpay payments, live booking tracking, and admin driver verification.
 
 ---
 
@@ -10,13 +10,11 @@ A rural-first cab booking platform connecting local drivers with customers acros
 2. [Booking & Payment Flow](#booking--payment-flow)
 3. [System Components](#system-components)
 4. [Database Design](#database-design)
-5. [API Overview](#api-overview)
-6. [Security Model](#security-model)
-7. [Maps & Geocoding](#maps--geocoding)
-8. [Caching Strategy](#caching-strategy)
-9. [Project Structure](#project-structure)
-10. [Getting Started](#getting-started)
-11. [Environment Variables](#environment-variables)
+5. [Security Model](#security-model)
+6. [Maps & Geocoding](#maps--geocoding)
+7. [Caching Strategy](#caching-strategy)
+8. [Project Structure](#project-structure)
+9. [Getting Started](#getting-started)
 
 ---
 
@@ -165,22 +163,6 @@ graph LR
     AD --> AdminFeatures
 ```
 
-### Frontend Routes
-
-| Route | Access | Description |
-|-------|--------|-------------|
-| `/` | Public | Home page |
-| `/register` | Public | Unified register (Customer / Driver) |
-| `/login` | Public | Unified login |
-| `/drivers/available` | Public | Search verified drivers |
-| `/bookings/create` | Public | Create booking |
-| `/track/:bookingId` | Public | Live booking tracking + map |
-| `/rider/dashboard` | Rider JWT | Bookings, payment, analytics |
-| `/driver/dashboard` | Driver JWT | Requests, trips, earnings |
-| `/admin/login` | Public | Admin-only login |
-| `/admin/dashboard` | Admin JWT | Verification & management |
-| `/ratings/create` | Public | Rate completed rides |
-
 ### Backend Modules
 
 ```mermaid
@@ -273,42 +255,6 @@ erDiagram
 | `ONGOING` | Driver started the trip |
 | `COMPLETED` | Trip finished |
 | `CANCELLED` | Cancelled by rider or driver |
-
----
-
-## API Overview
-
-### Authentication
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/riders/register` | Customer registration |
-| POST | `/api/riders/login` | Customer login → JWT |
-| POST | `/api/drivers/register` | Driver registration (unverified) |
-| POST | `/api/auth/driver/login` | Driver login → JWT |
-| POST | `/api/auth/admin/login` | Admin login → JWT |
-
-### Bookings
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/bookings` | Public | Create booking + geocode |
-| GET | `/api/bookings/{id}` | Public | Get booking |
-| GET | `/api/bookings/{id}/stream` | Public | SSE live updates |
-| GET | `/api/bookings/rider/me` | Rider | My bookings |
-| GET | `/api/bookings/me` | Driver | Driver's bookings |
-| PATCH | `/api/bookings/{id}/status` | Driver | Accept / Start / Complete |
-| POST | `/api/bookings/{id}/razorpay-order` | Rider | Create payment order |
-| POST | `/api/bookings/{id}/razorpay-verify` | Rider | Verify payment → BOOKED |
-
-### Admin
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/admin/drivers/pending` | Unverified drivers |
-| POST | `/api/admin/drivers/{id}/verify` | Approve driver |
-| POST | `/api/admin/drivers/{id}/block` | Block driver |
-| GET | `/api/admin/stats` | Platform statistics |
 
 ---
 
@@ -433,40 +379,6 @@ App runs at `http://localhost:5173`
 | Customer | Register at `/register` → Login at `/login` |
 | Driver | Register at `/register` (Driver tab) → Admin must verify |
 | Admin | `/admin/login` — credentials from `application.properties` |
-
----
-
-## Environment Variables
-
-Configure in `server/src/main/resources/application.properties`:
-
-```properties
-# MongoDB
-spring.data.mongodb.uri=mongodb+srv://...
-
-# JWT
-localcab.security.jwt.secret=your-secret
-localcab.security.jwt.expiration-ms=86400000
-
-# Admin (seeded to DB on first run)
-localcab.admin.username=admin-mahesh
-localcab.admin.password=Mahesh@4681
-
-# Razorpay
-razorpay.key.id=rzp_test_...
-razorpay.key.secret=...
-razorpay.currency=INR
-
-# AI (optional)
-spring.ai.openai.api-key=your-groq-key
-spring.ai.openai.base-url=https://api.groq.com/openai/v1
-```
-
-Frontend optional override:
-
-```env
-VITE_API_BASE_URL=http://localhost:8080/api
-```
 
 ---
 
