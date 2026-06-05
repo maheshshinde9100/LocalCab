@@ -23,27 +23,45 @@ A rural-first cab booking platform connecting local drivers with customers acros
 ```mermaid
 flowchart TB
     subgraph Client["React Frontend (Vite + Tailwind)"]
+        style Client fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
         UI[Pages & Components]
+        style UI fill:#7dd3fc,stroke:#0284c7,stroke-width:1px
         API_CLIENT[Axios API Layer]
+        style API_CLIENT fill:#7dd3fc,stroke:#0284c7,stroke-width:1px
         AUTH_LS[localStorage Sessions]
+        style AUTH_LS fill:#7dd3fc,stroke:#0284c7,stroke-width:1px
         MAP[Leaflet + OSRM Maps]
+        style MAP fill:#7dd3fc,stroke:#0284c7,stroke-width:1px
     end
 
     subgraph Server["Spring Boot Backend"]
+        style Server fill:#dcfce7,stroke:#16a34a,stroke-width:2px
         CTRL[REST Controllers]
+        style CTRL fill:#86efac,stroke:#16a34a,stroke-width:1px
         SVC[Services]
+        style SVC fill:#86efac,stroke:#16a34a,stroke-width:1px
         SEC[Spring Security + JWT Filter]
+        style SEC fill:#86efac,stroke:#16a34a,stroke-width:1px
         CACHE[Spring Cache]
+        style CACHE fill:#86efac,stroke:#16a34a,stroke-width:1px
         GEO[Geocoding Service]
+        style GEO fill:#86efac,stroke:#16a34a,stroke-width:1px
         SSE[Booking SSE Stream]
+        style SSE fill:#86efac,stroke:#16a34a,stroke-width:1px
     end
 
     subgraph External["External Services"]
+        style External fill:#fef3c7,stroke:#d97706,stroke-width:2px
         MONGO[(MongoDB Atlas)]
+        style MONGO fill:#fde68a,stroke:#d97706,stroke-width:1px
         RAZORPAY[Razorpay API]
+        style RAZORPAY fill:#fde68a,stroke:#d97706,stroke-width:1px
         NOMINATIM[OpenStreetMap Nominatim]
+        style NOMINATIM fill:#fde68a,stroke:#d97706,stroke-width:1px
         OSRM[OSRM Routing]
+        style OSRM fill:#fde68a,stroke:#d97706,stroke-width:1px
         GROQ[Groq AI - Fare Suggestions]
+        style GROQ fill:#fde68a,stroke:#d97706,stroke-width:1px
     end
 
     UI --> API_CLIENT --> SEC --> CTRL --> SVC
@@ -64,6 +82,19 @@ The ride lifecycle enforces payment **after driver acceptance** and **before the
 
 ```mermaid
 stateDiagram-v2
+    state REQUESTED
+    style REQUESTED fill:#fef3c7,stroke:#d97706,stroke-width:2px
+    state CONFIRMED
+    style CONFIRMED fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    state BOOKED
+    style BOOKED fill:#dcfce7,stroke:#16a34a,stroke-width:2px
+    state ONGOING
+    style ONGOING fill:#fce7f3,stroke:#ec4899,stroke-width:2px
+    state COMPLETED
+    style COMPLETED fill:#d1fae5,stroke:#10b981,stroke-width:2px
+    state CANCELLED
+    style CANCELLED fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+
     [*] --> REQUESTED: Customer creates booking
     REQUESTED --> CONFIRMED: Driver accepts
     REQUESTED --> CANCELLED: Driver/Rider cancels
@@ -127,12 +158,17 @@ sequenceDiagram
 ```mermaid
 graph LR
     subgraph Roles
+        style Roles fill:#f0f9ff,stroke:#0ea5e9,stroke-width:2px
         R[Rider / Customer]
+        style R fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
         DR[Driver]
+        style DR fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
         AD[Admin]
+        style AD fill:#fce7f3,stroke:#ec4899,stroke-width:2px
     end
 
     subgraph RiderFeatures
+        style RiderFeatures fill:#ecfdf5,stroke:#10b981,stroke-width:2px
         R1[Register / Login]
         R2[Find Verified Drivers]
         R3[Create Booking]
@@ -142,6 +178,7 @@ graph LR
     end
 
     subgraph DriverFeatures
+        style DriverFeatures fill:#fffbeb,stroke:#d97706,stroke-width:2px
         D1[Register - pending verification]
         D2[Accept / Decline Rides]
         D3[View Payment Status]
@@ -151,6 +188,7 @@ graph LR
     end
 
     subgraph AdminFeatures
+        style AdminFeatures fill:#fdf4ff,stroke:#9333ea,stroke-width:2px
         A1[Admin Login - DB backed]
         A2[Pending Driver Verifications]
         A3[Verify / Block Drivers]
@@ -168,15 +206,24 @@ graph LR
 ```mermaid
 graph TD
     APP[LocalCabApplication]
+    style APP fill:#fef3c7,stroke:#d97706,stroke-width:3px
 
     APP --> AUTH[auth/ - JWT, Admin, Driver login]
+    style AUTH fill:#fce7f3,stroke:#ec4899,stroke-width:1px
     APP --> RIDER[rider/ - Customer accounts]
+    style RIDER fill:#e0f2fe,stroke:#0284c7,stroke-width:1px
     APP --> DRIVER[driver/ - Driver accounts & availability]
+    style DRIVER fill:#dbeafe,stroke:#3b82f6,stroke-width:1px
     APP --> BOOKING[booking/ - Rides, Razorpay, SSE]
+    style BOOKING fill:#dcfce7,stroke:#16a34a,stroke-width:1px
     APP --> ADMIN[admin/ - Platform management]
+    style ADMIN fill:#fdf4ff,stroke:#9333ea,stroke-width:1px
     APP --> RATING[rating/ - Driver reviews]
+    style RATING fill:#fef3c7,stroke:#d97706,stroke-width:1px
     APP --> AI[ai/ - Groq fare suggestions]
+    style AI fill:#fce7f3,stroke:#ec4899,stroke-width:1px
     APP --> CONFIG[config/ - Security, Cache, Geocoding, Exceptions]
+    style CONFIG fill:#f0f9ff,stroke:#0ea5e9,stroke-width:1px
 ```
 
 ---
@@ -195,6 +242,7 @@ erDiagram
         string village
         string pincode
     }
+    style RIDERS fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
 
     DRIVERS {
         string id PK
@@ -208,6 +256,7 @@ erDiagram
         boolean available
         boolean verified
     }
+    style DRIVERS fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
 
     BOOKINGS {
         string id PK
@@ -225,12 +274,14 @@ erDiagram
         string razorpayOrderId
         string razorpayPaymentId
     }
+    style BOOKINGS fill:#dcfce7,stroke:#16a34a,stroke-width:2px
 
     ADMINS {
         string id PK
         string username UK
         string passwordHash
     }
+    style ADMINS fill:#fce7f3,stroke:#ec4899,stroke-width:2px
 
     RATINGS {
         string id PK
@@ -239,6 +290,7 @@ erDiagram
         int rating
         string comment
     }
+    style RATINGS fill:#fef3c7,stroke:#d97706,stroke-width:2px
 
     DRIVERS ||--o{ BOOKINGS : accepts
     RIDERS ||--o{ BOOKINGS : creates
@@ -263,15 +315,24 @@ erDiagram
 ```mermaid
 flowchart LR
     REQ[HTTP Request] --> RL[Rate Limit Filter - disabled in dev]
+    style REQ fill:#e0f2fe,stroke:#0284c7,stroke-width:1px
+    style RL fill:#dbeafe,stroke:#3b82f6,stroke-width:1px
     RL --> JWT[JWT Authentication Filter]
+    style JWT fill:#fef3c7,stroke:#d97706,stroke-width:2px
     JWT --> CTX{Role from JWT claim}
+    style CTX fill:#fdf4ff,stroke:#9333ea,stroke-width:2px
     CTX -->|RIDER| RR[ROLE_RIDER]
+    style RR fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
     CTX -->|DRIVER| DR[ROLE_DRIVER]
+    style DR fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
     CTX -->|ADMIN| AR[ROLE_ADMIN]
+    style AR fill:#fce7f3,stroke:#ec4899,stroke-width:2px
     RR --> AUTHZ[Spring Security Authorization]
     DR --> AUTHZ
     AR --> AUTHZ
+    style AUTHZ fill:#dcfce7,stroke:#16a34a,stroke-width:2px
     AUTHZ --> API[Protected Endpoints]
+    style API fill:#f0f9ff,stroke:#0ea5e9,stroke-width:2px
 ```
 
 - **JWT** stateless sessions with role claim (`RIDER`, `DRIVER`, `ADMIN`)
@@ -288,15 +349,25 @@ flowchart LR
 ```mermaid
 flowchart TD
     A[Customer enters pickup & drop villages] --> B[Backend GeocodingService]
+    style A fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
+    style B fill:#dcfce7,stroke:#16a34a,stroke-width:2px
     B --> C[Nominatim API]
+    style C fill:#fef3c7,stroke:#d97706,stroke-width:2px
     C --> D[Store lat/lng on Booking]
+    style D fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
     D --> E[LeafletMap Component]
+    style E fill:#fce7f3,stroke:#ec4899,stroke-width:2px
     E --> F{Coords missing?}
+    style F fill:#fdf4ff,stroke:#9333ea,stroke-width:2px
     F -->|Yes| G[Frontend geocode fallback]
+    style G fill:#f0f9ff,stroke:#0ea5e9,stroke-width:2px
     F -->|No| H[Render markers]
+    style H fill:#d1fae5,stroke:#10b981,stroke-width:2px
     G --> H
     H --> I[OSRM fetch route geometry]
+    style I fill:#fffbeb,stroke:#d97706,stroke-width:2px
     I --> J[Draw pickup → drop path on map]
+    style J fill:#fef3c7,stroke:#d97706,stroke-width:2px
 ```
 
 - Maps center on the **actual cities/villages** entered by the customer
