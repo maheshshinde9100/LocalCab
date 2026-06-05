@@ -56,6 +56,16 @@ public class Booking {
     private String cancellationReason;
     private String cancelledBy;
 
+    // Payment details
+    private String paymentStatus; // PENDING, COMPLETED, FAILED
+    private String paymentMethod; // RAZORPAY, CASH, NONE
+    private String razorpayOrderId;
+    private String razorpayPaymentId;
+
+    // Current driver location (for tracking)
+    private Double driverLatitude;
+    private Double driverLongitude;
+
     private BookingStatus status;
 
     @CreatedDate
