@@ -55,6 +55,12 @@ export const bookingAPI = {
     api.patch(`/bookings/${bookingId}/status`, { status, cancellationReason }),
   cancelByRider: (bookingId, riderId, cancellationReason) =>
     api.patch(`/bookings/${bookingId}/cancel/${riderId}`, { cancellationReason }),
+  createRazorpayOrder: (bookingId) => api.post(`/bookings/${bookingId}/razorpay-order`),
+  verifyRazorpayPayment: (bookingId, razorpayPaymentId, razorpaySignature) =>
+    api.post(`/bookings/${bookingId}/razorpay-verify`, { razorpayPaymentId, razorpaySignature }),
+  getPublicConfig: () => api.get('/bookings/config'),
+  updateLocation: (bookingId, latitude, longitude) =>
+    api.patch(`/bookings/${bookingId}/location?latitude=${latitude}&longitude=${longitude}`),
 };
 
 // Rating APIs
