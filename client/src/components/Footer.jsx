@@ -28,7 +28,7 @@ function Footer() {
                     <div>
                         <h4 className="text-xs font-black uppercase tracking-[0.2em] mb-6">Opportunities</h4>
                         <ul className="space-y-4 text-gray-400 text-sm font-medium">
-                            <li><Link to="/drivers/register" className="hover:text-white transition-colors">Drive with us</Link></li>
+                            <li><Link to="/register" className="hover:text-white transition-colors">Drive with us</Link></li>
                             <li><Link to="/" className="hover:text-white transition-colors">Village Partners</Link></li>
                             <li><Link to="/" className="hover:text-white transition-colors">Fleet Solutions</Link></li>
                         </ul>
@@ -53,7 +53,7 @@ function Footer() {
                         <a href="https://maheshshinde-dev.vercel.app" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors"><i className="fas fa-globe"></i></a>
                     </div>
                     <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">
-                        © {new Date().getFullYear()} LocalCab Technologies. All rights reserved.
+                        © {new Date().getFullYear()} LocalCab. All rights reserved.
                     </p>
                 </div>
             </div>

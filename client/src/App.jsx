@@ -1,8 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { auth } from './utils/auth';
 import Home from './pages/Home';
-import DriverRegister from './pages/DriverRegister';
-import DriverLogin from './pages/DriverLogin';
+import UnifiedRegister from './pages/UnifiedRegister';
+import UnifiedLogin from './pages/UnifiedLogin';
+import BookingTracking from './pages/BookingTracking';
 import DriverDashboard from './pages/DriverDashboard';
 import AvailableDrivers from './pages/AvailableDrivers';
 import CreateBooking from './pages/CreateBooking';
@@ -11,44 +12,42 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import Developer from './pages/Developer';
 import NotFound from './pages/NotFound';
-import RiderRegister from './pages/RiderRegister';
-import RiderLogin from './pages/RiderLogin';
 import RiderDashboard from './pages/RiderDashboard';
 import ScrollToTop from './utils/ScrollToTop';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
 function ProtectedRoute({ children }) {
-  return auth.isAuthenticated() ? children : <Navigate to="/driver/login" />;
+  return auth.isAuthenticated() ? children : <Navigate to="/login" />;
 }
 
 function RiderProtectedRoute({ children }) {
-  return auth.isRiderAuthenticated() ? children : <Navigate to="/rider/login" />;
+  return auth.isRiderAuthenticated() ? children : <Navigate to="/login" />;
 }
 
 function AdminRoute({ children }) {
   return auth.isAdminAuthenticated() ? children : <Navigate to="/admin/login" />;
 }
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   return (
-    <Router>
-      <ScrollToTop />
-      <div className="min-h-screen bg-white">
-        <Navbar />
-        <main>
-          <Routes>
+    <div className="min-h-screen bg-white">
+      {!isAdminRoute && <Navbar />}
+      <main>
+        <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/drivers/register" element={<DriverRegister />} />
-            <Route path="/driver/login" element={<DriverLogin />} />
+            <Route path="/register" element={<UnifiedRegister />} />
+            <Route path="/login" element={<UnifiedLogin />} />
             <Route path="/drivers/available" element={<AvailableDrivers />} />
             <Route path="/bookings/create" element={<CreateBooking />} />
+            <Route path="/track/:bookingId" element={<BookingTracking />} />
             <Route path="/ratings/create" element={<RateDriver />} />
             <Route path="/developer" element={<Developer />} />
             
             {/* Rider Routes */}
-            <Route path="/rider/register" element={<RiderRegister />} />
-            <Route path="/rider/login" element={<RiderLogin />} />
             <Route
               path="/rider/dashboard"
               element={
@@ -79,10 +78,18 @@ function App() {
             />
 
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
+        </Routes>
+      </main>
+      {!isAdminRoute && <Footer />}
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <ScrollToTop />
+      <AppContent />
     </Router>
   );
 }

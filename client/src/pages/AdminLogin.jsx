@@ -23,8 +23,7 @@ function AdminLogin() {
 
     try {
       const response = await adminAPI.login(formData);
-      auth.setAdminToken(response.data.token);
-      localStorage.setItem('adminUsername', response.data.username);
+      auth.setAdminSession(response.data.token, response.data.username);
       navigate('/admin/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid admin credentials');

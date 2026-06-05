@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { ratingAPI } from '../utils/api';
+import { auth } from '../utils/auth';
 
 function RateDriver() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const bookingId = searchParams.get('bookingId');
+  const riderDetails = auth.getRiderDetails();
 
   const [formData, setFormData] = useState({
     bookingId: bookingId || '',
-    riderName: '',
-    riderPhoneNumber: '',
+    riderName: riderDetails.name || '',
+    riderPhoneNumber: riderDetails.phone || '',
     rating: 0,
     comment: '',
   });
