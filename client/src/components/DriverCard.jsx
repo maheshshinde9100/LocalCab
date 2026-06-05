@@ -41,7 +41,7 @@ const DriverCard = ({ driver, ratingSummary }) => {
           CALL NOW
         </a>
         <Link
-          to={`/bookings/create?driverId=${driver.id}`}
+          to={`/bookings/create?driverId=${driver.id}&vehicleType=${driver.vehicleType}`}
           className="flex-1 bg-black text-white text-center font-black py-4 rounded-2xl text-xs hover:bg-gray-800 transition-all active:scale-95 shadow-xl shadow-black/10"
         >
           BOOK RIDE

@@ -18,7 +18,7 @@ function CreateBooking() {
     pickupLandmark: '',
     dropLocation: '',
     agreedFare: '',
-    vehicleType: 'Sedan', // Default
+    vehicleType: searchParams.get('vehicleType') || 'Sedan',
     approximateKm: 10,
   });
 
@@ -193,20 +193,9 @@ function CreateBooking() {
                     </div>
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Vehicle Type</label>
-                      <select name="vehicleType" value={formData.vehicleType} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium appearance-none">
-                        <option>Sedan</option>
-                        <option>SUV</option>
-                        <option>Auto</option>
-                        <option>Hatchback</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Approx KM</label>
-                      <input name="approximateKm" type="number" value={formData.approximateKm} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium" />
-                    </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400">Approx KM</label>
+                    <input name="approximateKm" type="number" value={formData.approximateKm} onChange={handleChange} className="w-full bg-gray-50 border-none rounded-2xl py-3 px-4 focus:ring-2 focus:ring-black font-medium" />
                   </div>
 
                   <div className="pt-6">

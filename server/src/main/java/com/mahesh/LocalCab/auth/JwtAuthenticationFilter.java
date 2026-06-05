@@ -39,40 +39,46 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String jwt = authHeader.substring(7);
-        final String username = jwtService.extractUsername(jwt);
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            boolean isAdmin = adminUsername.equals(username);
-            
-            if (isAdmin && jwtService.isTokenValid(jwt, username)) {
-                var userDetails = User.withUsername(username)
-                        .password("")
-                        .authorities("ROLE_ADMIN")
-                        .build();
+        try {
+            final String username = jwtService.extractUsername(jwt);
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            } else {
-                // Check if it's a driver
-                var driverOpt = driverRepository.findByPhoneNumber(username);
-                if (driverOpt.isPresent() && jwtService.isTokenValid(jwt, username)) {
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                boolean isAdmin = adminUsername.equals(username);
+
+                if (isAdmin && jwtService.isTokenValid(jwt, username)) {
                     var userDetails = User.withUsername(username)
                             .password("")
-                            .authorities("ROLE_DRIVER")
+                            .authorities("ROLE_ADMIN")
                             .build();
 
                     UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    // Check if it's a driver
+                    var driverOpt = driverRepository.findByPhoneNumber(username);
+                    if (driverOpt.isPresent() && jwtService.isTokenValid(jwt, username)) {
+                        var userDetails = User.withUsername(username)
+                                .password("")
+                                .authorities("ROLE_DRIVER")
+                                .build();
+
+                        UsernamePasswordAuthenticationToken authToken =
+                                new UsernamePasswordAuthenticationToken(
+                                        userDetails,
+                                        null,
+                                        userDetails.getAuthorities()
+                                );
+                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                    }
                 }
             }
+        } catch (Exception ex) {
+            // Invalid or non-JWT token (e.g. mock tokens, malformed tokens) — skip authentication
+            // and let Spring Security decide based on endpoint permissions
         }
 
         filterChain.doFilter(request, response);

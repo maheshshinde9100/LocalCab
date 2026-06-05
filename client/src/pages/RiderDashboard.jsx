@@ -277,6 +277,15 @@ function RiderDashboard() {
                 </div>
 
                 <div className="border-t border-slate-100 pt-6 flex flex-wrap gap-3">
+                  {activeBooking.paymentStatus !== 'COMPLETED' && (
+                    <button
+                      onClick={() => handlePayment(activeBooking)}
+                      disabled={paying}
+                      className="flex-1 min-w-[140px] bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition duration-150"
+                    >
+                      <i className="fas fa-credit-card"></i> {paying ? 'Processing...' : 'PAY ONLINE NOW'}
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowSosModal(true)}
                     className="flex-1 min-w-[140px] bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-rose-100 transition duration-150"
