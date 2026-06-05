@@ -2,7 +2,11 @@ package com.mahesh.LocalCab.booking;
 
 import com.mahesh.LocalCab.driver.Driver;
 import com.mahesh.LocalCab.driver.DriverRepository;
-import lombok.RequiredArgsConstructor;
+import com.razorpay.Order;
+import com.razorpay.RazorpayClient;
+import com.razorpay.Utils;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -16,11 +20,30 @@ import static com.mahesh.LocalCab.booking.BookingDtos.CreateBookingRequest;
 import static com.mahesh.LocalCab.booking.BookingDtos.UpdateStatusRequest;
 
 @Service
-@RequiredArgsConstructor
 public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final DriverRepository driverRepository;
+    private final BookingSseService bookingSseService;
+
+    @Value("${razorpay.key.id}")
+    private String razorpayKeyId;
+
+    @Value("${razorpay.key.secret}")
+    private String razorpayKeySecret;
+
+    @Value("${razorpay.currency}")
+    private String razorpayCurrency;
+
+    public BookingService(
+            BookingRepository bookingRepository,
+            DriverRepository driverRepository,
+            BookingSseService bookingSseService
+    ) {
+        this.bookingRepository = bookingRepository;
+        this.driverRepository = driverRepository;
+        this.bookingSseService = bookingSseService;
+    }
 
     public BookingResponse createBooking(CreateBookingRequest request) {
         Driver driver = driverRepository.findById(request.getDriverId())
@@ -42,11 +65,15 @@ public class BookingService {
                 .agreedFare(request.getAgreedFare())
                 .distanceKm(request.getDistanceKm())
                 .status(BookingStatus.REQUESTED)
+                .paymentStatus("PENDING")
+                .paymentMethod("NONE")
                 .requestedAt(Instant.now())
                 .build();
 
         Booking saved = bookingRepository.save(booking);
-        return toResponse(saved);
+        BookingResponse response = toResponse(saved);
+        bookingSseService.publish(saved.getId(), response);
+        return response;
     }
 
     public List<BookingResponse> getBookingsForCurrentDriver() {
@@ -94,7 +121,9 @@ public class BookingService {
         }
 
         Booking saved = bookingRepository.save(booking);
-        return toResponse(saved);
+        BookingResponse response = toResponse(saved);
+        bookingSseService.publish(saved.getId(), response);
+        return response;
     }
 
     public BookingResponse cancelBookingByRider(String bookingId, String riderId, UpdateStatusRequest request) {
@@ -111,7 +140,86 @@ public class BookingService {
         booking.setCancelledBy("RIDER");
 
         Booking saved = bookingRepository.save(booking);
-        return toResponse(saved);
+        BookingResponse response = toResponse(saved);
+        bookingSseService.publish(saved.getId(), response);
+        return response;
+    }
+
+    public BookingResponse updateLocation(String bookingId, Double latitude, Double longitude) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+
+        booking.setDriverLatitude(latitude);
+        booking.setDriverLongitude(longitude);
+
+        Booking saved = bookingRepository.save(booking);
+        BookingResponse response = toResponse(saved);
+        bookingSseService.publish(saved.getId(), response);
+        return response;
+    }
+
+    public String getRazorpayKeyId() {
+        return razorpayKeyId;
+    }
+
+    public BookingResponse createRazorpayOrder(String bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+
+        try {
+            RazorpayClient razorpayClient = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
+
+            JSONObject orderRequest = new JSONObject();
+            // Convert agreedFare (INR) to paise (1 INR = 100 paise)
+            int amountInPaise = (int) Math.round(booking.getAgreedFare() * 100);
+            orderRequest.put("amount", amountInPaise);
+            orderRequest.put("currency", razorpayCurrency);
+            orderRequest.put("receipt", "receipt_" + bookingId);
+
+            Order order = razorpayClient.orders.create(orderRequest);
+            String orderId = order.get("id");
+
+            booking.setRazorpayOrderId(orderId);
+            booking.setPaymentStatus("PENDING");
+            booking.setPaymentMethod("RAZORPAY");
+
+            Booking saved = bookingRepository.save(booking);
+            BookingResponse response = toResponse(saved);
+            bookingSseService.publish(saved.getId(), response);
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create Razorpay Order: " + e.getMessage(), e);
+        }
+    }
+
+    public BookingResponse verifyRazorpayPayment(String bookingId, String razorpayPaymentId, String razorpaySignature) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+
+        try {
+            JSONObject options = new JSONObject();
+            options.put("razorpay_order_id", booking.getRazorpayOrderId());
+            options.put("razorpay_payment_id", razorpayPaymentId);
+            options.put("razorpay_signature", razorpaySignature);
+
+            boolean isSignatureValid = Utils.verifyPaymentSignature(options, razorpayKeySecret);
+
+            if (isSignatureValid) {
+                booking.setPaymentStatus("COMPLETED");
+                booking.setRazorpayPaymentId(razorpayPaymentId);
+                booking.setPaymentMethod("RAZORPAY");
+            } else {
+                booking.setPaymentStatus("FAILED");
+                throw new IllegalArgumentException("Payment signature verification failed");
+            }
+
+            Booking saved = bookingRepository.save(booking);
+            BookingResponse response = toResponse(saved);
+            bookingSseService.publish(saved.getId(), response);
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException("Payment verification failed: " + e.getMessage(), e);
+        }
     }
 
     private Driver getCurrentDriver() {
@@ -143,6 +251,12 @@ public class BookingService {
                 .agreedFare(booking.getAgreedFare())
                 .distanceKm(booking.getDistanceKm())
                 .status(booking.getStatus())
+                .paymentStatus(booking.getPaymentStatus())
+                .paymentMethod(booking.getPaymentMethod())
+                .razorpayOrderId(booking.getRazorpayOrderId())
+                .razorpayPaymentId(booking.getRazorpayPaymentId())
+                .driverLatitude(booking.getDriverLatitude())
+                .driverLongitude(booking.getDriverLongitude())
                 .requestedAt(booking.getRequestedAt())
                 .confirmedAt(booking.getConfirmedAt())
                 .ongoingAt(booking.getOngoingAt())
@@ -155,5 +269,6 @@ public class BookingService {
                 .build();
     }
 }
+
 
 
