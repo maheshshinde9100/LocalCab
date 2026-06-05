@@ -83,6 +83,12 @@ public class BookingDtos {
         private Instant cancelledAt;
         private String cancellationReason;
         private String cancelledBy;
+        private String paymentStatus;
+        private String paymentMethod;
+        private String razorpayOrderId;
+        private String razorpayPaymentId;
+        private Double driverLatitude;
+        private Double driverLongitude;
         private Instant createdAt;
         private Instant updatedAt;
     }
