@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.mahesh.LocalCab.booking.BookingDtos.BookingResponse;
 import static com.mahesh.LocalCab.booking.BookingDtos.CreateBookingRequest;
@@ -18,6 +19,7 @@ import static com.mahesh.LocalCab.booking.BookingDtos.UpdateStatusRequest;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final BookingSseService bookingSseService;
 
     /**
      * Public endpoint: create a booking record after rider and driver agree on fare by phone.
@@ -77,6 +79,58 @@ public class BookingController {
             @Valid @RequestBody UpdateStatusRequest request
     ) {
         BookingResponse response = bookingService.cancelBookingByRider(bookingId, riderId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get booking real-time updates via SSE stream.
+     */
+    @GetMapping("/{bookingId}/stream")
+    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter streamBooking(@PathVariable String bookingId) {
+        return bookingSseService.subscribe(bookingId);
+    }
+
+    /**
+     * Driver: update driver location coordinates
+     */
+    @PatchMapping("/{bookingId}/location")
+    public ResponseEntity<BookingResponse> updateLocation(
+            @PathVariable String bookingId,
+            @RequestParam Double latitude,
+            @RequestParam Double longitude
+    ) {
+        BookingResponse response = bookingService.updateLocation(bookingId, latitude, longitude);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Public config: get public credentials/parameters (e.g., Razorpay Key ID)
+     */
+    @GetMapping("/config")
+    public ResponseEntity<Map<String, String>> getPublicConfig() {
+        return ResponseEntity.ok(Map.of("razorpayKeyId", bookingService.getRazorpayKeyId()));
+    }
+
+    /**
+     * Rider: initiate Razorpay Order creation
+     */
+    @PostMapping("/{bookingId}/razorpay-order")
+    public ResponseEntity<BookingResponse> createRazorpayOrder(@PathVariable String bookingId) {
+        BookingResponse response = bookingService.createRazorpayOrder(bookingId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Rider: verify payment signature after frontend transaction complete
+     */
+    @PostMapping("/{bookingId}/razorpay-verify")
+    public ResponseEntity<BookingResponse> verifyRazorpayPayment(
+            @PathVariable String bookingId,
+            @RequestBody Map<String, String> payload
+    ) {
+        String paymentId = payload.get("razorpayPaymentId");
+        String signature = payload.get("razorpaySignature");
+        BookingResponse response = bookingService.verifyRazorpayPayment(bookingId, paymentId, signature);
         return ResponseEntity.ok(response);
     }
 }
