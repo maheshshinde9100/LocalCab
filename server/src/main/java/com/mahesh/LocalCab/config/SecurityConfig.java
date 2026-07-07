@@ -114,7 +114,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(java.util.List.of(
                 "http://localhost:5173",
                 "http://localhost:3000",
-                "http://127.0.0.1:5173"
+                "http://127.0.0.1:5173",
+            "https://localcab.vercel.app"
         ));
         configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(java.util.List.of("Authorization", "Content-Type", "X-Requested-With"));
